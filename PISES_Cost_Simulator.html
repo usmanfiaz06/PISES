@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PISES New Campus — Cost Simulator</title>
+<style>
+  :root {
+    --dk-green: #01411C;
+    --md-green: #388E3C;
+    --lt-green: #E8F5E9;
+    --gold: #C49A2A;
+    --lt-gold: #FFF8E1;
+    --dk-grey: #424242;
+    --md-grey: #757575;
+    --lt-grey: #F5F5F5;
+    --border: #BDBDBD;
+    --white: #FFFFFF;
+    --red: #C62828;
+    --blue: #1565C0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'Calibri', Arial, sans-serif;
+    background: var(--lt-grey);
+    color: var(--dk-grey);
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  .header {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 18px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+  .header .sub { color: var(--gold); font-size: 12px; margin-top: 2px; }
+  .header .badge {
+    background: var(--gold);
+    color: var(--dk-green);
+    padding: 4px 14px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────────── */
+  .container { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 340px 1fr 340px; gap: 16px; }
+
+  @media (max-width: 1200px) {
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── CARDS ──────────────────────────────────────────── */
+  .card {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .card-head {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .card-head.gold { background: var(--gold); color: var(--dk-green); }
+  .card-head.blue { background: var(--blue); color: var(--white); }
+  .card-head.red  { background: var(--red); color: var(--white); }
+  .card-body { padding: 14px 16px; }
+
+  /* ── INPUTS ─────────────────────────────────────────── */
+  .input-group { margin-bottom: 14px; }
+  .input-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dk-grey);
+    margin-bottom: 4px;
+  }
+  .input-group label .val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dk-green);
+  }
+  .input-group input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--md-green), var(--dk-green));
+    outline: none;
+  }
+  .input-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--dk-green);
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  .input-group input[type="number"] {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .input-group input[type="number"]:focus {
+    outline: none;
+    border-color: var(--dk-green);
+    box-shadow: 0 0 0 2px rgba(1,65,28,0.15);
+  }
+
+  .cost-slider-group { margin-bottom: 10px; }
+  .cost-slider-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .cost-slider-group label .val { color: var(--dk-green); font-weight: 700; }
+  .cost-slider-group .range-row { display: flex; align-items: center; gap: 8px; }
+  .cost-slider-group input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 5px;
+    border-radius: 3px;
+    outline: none;
+  }
+  .cost-slider-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  .cost-slider-group .includes {
+    font-size: 10px;
+    color: var(--md-grey);
+    margin-top: 2px;
+    padding-left: 4px;
+    line-height: 1.35;
+  }
+
+  /* Color-coded sliders */
+  .slider-consultant input[type="range"] { background: #E1BEE7; }
+  .slider-consultant input[type="range"]::-webkit-slider-thumb { background: #7B1FA2; }
+  .slider-core input[type="range"] { background: #BBDEFB; }
+  .slider-core input[type="range"]::-webkit-slider-thumb { background: #1565C0; }
+  .slider-first input[type="range"] { background: #C8E6C9; }
+  .slider-first input[type="range"]::-webkit-slider-thumb { background: #2E7D32; }
+  .slider-second input[type="range"] { background: #FFE0B2; }
+  .slider-second input[type="range"]::-webkit-slider-thumb { background: #E65100; }
+  .slider-third input[type="range"] { background: #FFCDD2; }
+  .slider-third input[type="range"]::-webkit-slider-thumb { background: #C62828; }
+
+  .pct-bar {
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+    margin: 8px 0;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .pct-bar div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.3s;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .pct-consultant { background: #7B1FA2; }
+  .pct-core { background: #1565C0; }
+  .pct-first { background: #2E7D32; }
+  .pct-second { background: #E65100; }
+  .pct-third { background: #C62828; }
+
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 11px;
+  }
+  .total-line.warn { color: var(--red); font-weight: 700; }
+
+  /* ── TABLES ─────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 6px 8px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #E0E0E0;
+    text-align: center;
+  }
+  td:first-child { text-align: left; font-weight: 500; }
+  tr:nth-child(even) { background: var(--lt-green); }
+  tr.section-head td {
+    background: var(--lt-gold);
+    font-weight: 700;
+    color: var(--dk-green);
+    font-size: 11px;
+    border-bottom: 2px solid var(--gold);
+  }
+  tr.total-row td {
+    background: var(--dk-green);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  tr.subtotal-row td {
+    background: var(--lt-gold);
+    font-weight: 700;
+    color: var(--dk-green);
+  }
+
+  /* ── KPI CARDS ──────────────────────────────────────── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .kpi {
+    background: var(--lt-green);
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .kpi .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dk-green);
+    line-height: 1.2;
+  }
+  .kpi .label {
+    font-size: 9px;
+    color: var(--md-grey);
+    margin-top: 2px;
+  }
+
+  .kpi-gold { background: var(--lt-gold); }
+  .kpi-gold .value { color: var(--gold); }
+
+  /* ── COST BREAKDOWN ─────────────────────────────────── */
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 11px;
+    border-bottom: 1px solid #EEE;
+  }
+  .cost-row:last-child { border-bottom: none; }
+  .cost-row .cost-label { color: var(--dk-grey); }
+  .cost-row .cost-val { font-weight: 700; color: var(--dk-green); }
+  .cost-row.grand {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 8px 10px;
+    margin: 8px -16px -14px;
+    border-radius: 0 0 8px 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .cost-row.grand .cost-val { color: var(--gold); }
+
+  .disclaimer {
+    font-size: 9px;
+    color: var(--md-grey);
+    font-style: italic;
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+
+  /* ── SECTION DIVIDERS ───────────────────────────────── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dk-green);
+    margin: 10px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--lt-green);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .tag-tbc { background: var(--lt-green); color: var(--dk-green); }
+  .tag-non { background: #FFF3E0; color: #E65100; }
+
+  /* ── FOOTER ─────────────────────────────────────────── */
+  .footer {
+    background: var(--dk-green);
+    color: var(--gold);
+    text-align: center;
+    padding: 12px;
+    font-size: 10px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>PISES NEW CAMPUS — INTERACTIVE COST SIMULATOR</h1>
+    <div class="sub">Pakistan International School (English Section), Riyadh | Al Safa Plot | 25,000 m²</div>
+  </div>
+  <div class="badge">LIVE CALCULATOR</div>
+</div>
+
+<div class="container">
+  <div class="grid-3">
+
+    <!-- ════════════════ LEFT PANEL: INPUTS ════════════════ -->
+    <div>
+      <!-- Student Count -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head">STUDENT CAPACITY</div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Total Students <span class="val" id="lbl-students">7,000</span></label>
+            <input type="range" id="sl-students" min="2000" max="10000" step="100" value="7000">
+          </div>
+          <div class="kpi-row" style="margin-bottom:0;">
+            <div class="kpi"><div class="value" id="kpi-ey">—</div><div class="label">Early Years</div></div>
+            <div class="kpi"><div class="value" id="kpi-pri">—</div><div class="label">Primary</div></div>
+            <div class="kpi"><div class="value" id="kpi-int">—</div><div class="label">Intermediate</div></div>
+            <div class="kpi"><div class="value" id="kpi-sec">—</div><div class="label">Secondary</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost Rate Splits -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head gold">COST CATEGORY RATES (SAR/m² BUA)</div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Total All-In Rate <span class="val" id="lbl-rate">4,771</span> SAR/m²</label>
+            <input type="range" id="sl-rate" min="3000" max="7000" step="50" value="4771">
+          </div>
+          <hr style="border:none;border-top:1px solid #EEE;margin:8px 0;">
+
+          <div class="cost-slider-group slider-consultant">
+            <label>Consultant Fees <span class="val" id="lbl-pct-consultant">10%</span></label>
+            <div class="range-row">
+              <input type="range" id="sl-pct-consultant" min="0" max="20" step="0.5" value="10">
+            </div>
+            <div class="includes">Design, supervision, PM, QS, specialist consultants</div>
+          </div>
+
+          <div class="cost-slider-group slider-core">
+            <label>Core & Shell <span class="val" id="lbl-pct-core">40%</span></label>
+            <div class="range-row">
+              <input type="range" id="sl-pct-core" min="20" max="60" step="0.5" value="40">
+            </div>
+            <div class="includes">Foundations, structure, envelope, roof, facades, waterproofing, external works</div>
+          </div>
+
+          <div class="cost-slider-group slider-first">
+            <label>First Fix (MEP Rough-In) <span class="val" id="lbl-pct-first">18%</span></label>
+            <div class="range-row">
+              <input type="range" id="sl-pct-first" min="5" max="30" step="0.5" value="18">
+            </div>
+            <div class="includes">Ductwork, piping, cable trays, conduits, drainage, fire mains, chiller plant, AHUs</div>
+          </div>
+
+          <div class="cost-slider-group slider-second">
+            <label>Second Fix (MEP Finishing) <span class="val" id="lbl-pct-second">14%</span></label>
+            <div class="range-row">
+              <input type="range" id="sl-pct-second" min="5" max="25" step="0.5" value="14">
+            </div>
+            <div class="includes">FCUs, diffusers, switches, sockets, lighting, sanitary fixtures, fire detectors, BMS wiring</div>
+          </div>
+
+          <div class="cost-slider-group slider-third">
+            <label>Third Fix (Fit-Out & FFE) <span class="val" id="lbl-pct-third">18%</span></label>
+            <div class="range-row">
+              <input type="range" id="sl-pct-third" min="5" max="30" step="0.5" value="18">
+            </div>
+            <div class="includes">Furniture, smart boards, ICT/AV, lab equipment, sports gear, kitchen, signage, landscaping</div>
+          </div>
+
+          <!-- Percentage bar -->
+          <div class="pct-bar" id="pct-bar">
+            <div class="pct-consultant" style="width:10%">10%</div>
+            <div class="pct-core" style="width:40%">40%</div>
+            <div class="pct-first" style="width:18%">18%</div>
+            <div class="pct-second" style="width:14%">14%</div>
+            <div class="pct-third" style="width:18%">18%</div>
+          </div>
+          <div class="total-line" id="pct-total-line">
+            <span>Total allocation</span><span>100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grossing Factors -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head blue">NET → GROSS MULTIPLIERS</div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Academic / Admin / SEN <span class="val" id="lbl-gf-acad">1.45×</span></label>
+            <input type="range" id="sl-gf-acad" min="1.20" max="1.80" step="0.01" value="1.45">
+          </div>
+          <div class="input-group">
+            <label>High-Service (Labs/Sports/Food) <span class="val" id="lbl-gf-hs">1.65×</span></label>
+            <input type="range" id="sl-gf-hs" min="1.30" max="2.00" step="0.01" value="1.65">
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label>Operations / Back-of-House <span class="val" id="lbl-gf-ops">1.55×</span></label>
+            <input type="range" id="sl-gf-ops" min="1.20" max="1.90" step="0.01" value="1.55">
+          </div>
+        </div>
+      </div>
+
+      <!-- Max Class Size -->
+      <div class="card">
+        <div class="card-head red">TBC PARAMETERS</div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Max Students / Classroom <span class="val" id="lbl-maxcls">25</span></label>
+            <input type="range" id="sl-maxcls" min="20" max="35" step="1" value="25">
+          </div>
+          <div class="input-group">
+            <label>Operational Buffer <span class="val" id="lbl-buffer">8%</span></label>
+            <input type="range" id="sl-buffer" min="0" max="20" step="1" value="8">
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label>EY Class Size (smaller) <span class="val" id="lbl-eycls">22</span></label>
+            <input type="range" id="sl-eycls" min="15" max="25" step="1" value="22">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ CENTER: SPACE PROGRAM ════════════════ -->
+    <div>
+      <!-- KPI summary -->
+      <div class="kpi-row">
+        <div class="kpi"><div class="value" id="kpi-rooms">—</div><div class="label">Total Rooms</div></div>
+        <div class="kpi"><div class="value" id="kpi-net">—</div><div class="label">NET m²</div></div>
+        <div class="kpi"><div class="value" id="kpi-bua">—</div><div class="label">BUA m²</div></div>
+        <div class="kpi kpi-gold"><div class="value" id="kpi-cost-sar">—</div><div class="label">Total Cost (SAR)</div></div>
+        <div class="kpi kpi-gold"><div class="value" id="kpi-cost-usd">—</div><div class="label">Total Cost (USD)</div></div>
+        <div class="kpi"><div class="value" id="kpi-coverage">—</div><div class="label">Site Coverage</div></div>
+      </div>
+
+      <!-- TBC-Mandated Spaces -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head">TBC-MANDATED SPACES <span class="tag tag-tbc" style="margin-left:8px;">CATEGORY A — RIYADH</span></div>
+        <div class="card-body" style="padding:0;">
+          <table id="tbl-tbc">
+            <thead>
+              <tr>
+                <th style="width:25%">Facility</th>
+                <th style="width:8%">Qty</th>
+                <th style="width:10%">NET m²/unit</th>
+                <th style="width:10%">Total NET</th>
+                <th style="width:10%">BUA m²</th>
+                <th style="width:12%">Cost (SAR)</th>
+                <th style="width:12%">Cost (USD)</th>
+                <th style="width:13%">TBC Rule</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-tbc"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Non-TBC Spaces -->
+      <div class="card">
+        <div class="card-head" style="background:#E65100;">NON-TBC SPACES <span class="tag tag-non" style="margin-left:8px; background:#FFF; color:#E65100;">BEST PRACTICE / INSTITUTIONAL</span></div>
+        <div class="card-body" style="padding:0;">
+          <table id="tbl-nontbc">
+            <thead>
+              <tr>
+                <th style="width:25%">Facility</th>
+                <th style="width:8%">Qty</th>
+                <th style="width:10%">NET m²/unit</th>
+                <th style="width:10%">Total NET</th>
+                <th style="width:10%">BUA m²</th>
+                <th style="width:12%">Cost (SAR)</th>
+                <th style="width:12%">Cost (USD)</th>
+                <th style="width:13%">Basis</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-nontbc"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ RIGHT PANEL: OUTPUTS ════════════════ -->
+    <div>
+      <!-- Cost Breakdown by Category -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head gold">COST BREAKDOWN BY FIX STAGE</div>
+        <div class="card-body">
+          <div class="cost-row">
+            <span class="cost-label" style="color:#7B1FA2;">■ Consultant Fees</span>
+            <span class="cost-val" id="out-consultant">—</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label" style="color:#1565C0;">■ Core & Shell</span>
+            <span class="cost-val" id="out-core">—</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label" style="color:#2E7D32;">■ First Fix (MEP Rough-In)</span>
+            <span class="cost-val" id="out-first">—</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label" style="color:#E65100;">■ Second Fix (MEP Finishing)</span>
+            <span class="cost-val" id="out-second">—</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label" style="color:#C62828;">■ Third Fix (Fit-Out & FFE)</span>
+            <span class="cost-val" id="out-third">—</span>
+          </div>
+          <div class="cost-row grand">
+            <span class="cost-label">TOTAL PROJECT COST</span>
+            <span class="cost-val" id="out-grand">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost by Space Type -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head">COST BY SPACE TYPE</div>
+        <div class="card-body">
+          <div class="cost-row"><span class="cost-label">TBC-Mandated Spaces</span><span class="cost-val" id="out-tbc-total">—</span></div>
+          <div class="cost-row"><span class="cost-label">Non-TBC Spaces</span><span class="cost-val" id="out-nontbc-total">—</span></div>
+          <div class="cost-row" style="border-top:2px solid var(--dk-green);padding-top:6px;font-weight:700;">
+            <span class="cost-label">Combined Total</span><span class="cost-val" id="out-combined">—</span>
+          </div>
+          <div style="margin-top:10px;">
+            <div style="display:flex;height:14px;border-radius:3px;overflow:hidden;font-size:8px;font-weight:700;color:white;">
+              <div id="bar-tbc" style="background:var(--dk-green);display:flex;align-items:center;justify-content:center;transition:width 0.3s;">TBC</div>
+              <div id="bar-nontbc" style="background:#E65100;display:flex;align-items:center;justify-content:center;transition:width 0.3s;">Non-TBC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Area Summary -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head blue">AREA SUMMARY</div>
+        <div class="card-body">
+          <div class="cost-row"><span class="cost-label">TBC NET Area</span><span class="cost-val" id="out-tbc-net">—</span></div>
+          <div class="cost-row"><span class="cost-label">Non-TBC NET Area</span><span class="cost-val" id="out-nontbc-net">—</span></div>
+          <div class="cost-row"><span class="cost-label">Total NET Area</span><span class="cost-val" id="out-total-net">—</span></div>
+          <div class="cost-row"><span class="cost-label">Total BUA (Gross)</span><span class="cost-val" id="out-total-bua">—</span></div>
+          <div class="cost-row"><span class="cost-label">Footprint (BUA÷3 floors)</span><span class="cost-val" id="out-footprint">—</span></div>
+          <div class="cost-row"><span class="cost-label">Site Coverage (of 25,000 m²)</span><span class="cost-val" id="out-site-cov">—</span></div>
+          <div class="cost-row"><span class="cost-label">m² per Student (BUA)</span><span class="cost-val" id="out-m2-student">—</span></div>
+          <div class="cost-row"><span class="cost-label">Cost per Student</span><span class="cost-val" id="out-cost-student">—</span></div>
+        </div>
+      </div>
+
+      <!-- What's Included -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-head">WHAT'S INCLUDED IN EACH STAGE</div>
+        <div class="card-body" style="font-size:10px; line-height:1.5;">
+          <div class="section-title" style="color:#7B1FA2;">Consultant Fees (Design & Supervision)</div>
+          <p>Architectural & structural design, MEP engineering, landscape, interior design, project management, quantity surveying, specialist consultants (acoustics, facade, fire), site supervision, regulatory approvals</p>
+
+          <div class="section-title" style="color:#1565C0;">Core & Shell (Structure & Envelope)</div>
+          <p>Excavation, piling/foundations, reinforced concrete frame, steel structure, masonry walls, waterproofing, roof system, facade/curtain wall, external cladding, stairs & lifts, external works, site infrastructure</p>
+
+          <div class="section-title" style="color:#2E7D32;">First Fix (MEP Rough-In)</div>
+          <p>HVAC ductwork & chiller plant, plumbing pipework & drainage, electrical cable trays & conduits, fire protection mains & sprinkler pipe, BMS backbone, generator & transformer, earthing & lightning</p>
+
+          <div class="section-title" style="color:#E65100;">Second Fix (MEP Finishing)</div>
+          <p>FCU/diffuser installation, lighting fixtures, switches & sockets, sanitary ware & taps, fire detectors & alarm devices, BMS sensors & panels, data/telecom outlets, access control devices</p>
+
+          <div class="section-title" style="color:#C62828;">Third Fix (Fit-Out & FFE)</div>
+          <p>Classroom furniture & desks, smart boards & projectors, lab benches & equipment, ICT servers & network, sports equipment, kitchen appliances, library shelving & books, signage & wayfinding, soft landscaping</p>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        Prices are planning-level estimates (2025 SAR). Includes construction, MEP, fit-out, ICT & furniture.
+        Excludes land, professional fees beyond consultant %, financing & inflation. 1 USD = 3.75 SAR.
+        TBC = Tatweer Building Company Category A (Riyadh). Gender separation from G2 onward doubles classroom wings.
+      </div>
+    </div>
+
+  </div><!-- grid-3 -->
+</div><!-- container -->
+
+<div class="footer">
+  CONFIDENTIAL | Pakistan International School (English Section), Riyadh | Cost Simulator v1.0 | 2025
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// PISES COST SIMULATOR — ENGINE
+// ═══════════════════════════════════════════════════════════════
+
+const SAR_TO_USD = 1 / 3.75;
+const SITE_AREA = 25000;
+const NUM_FLOORS = 3;
+
+// Distribution ratios from current enrollment (5,263 students)
+const RATIO_EY   = 0.152;  // Early Years (Nursery–KG)
+const RATIO_PRI  = 0.311;  // Primary (G1–G4)
+const RATIO_INT  = 0.390;  // Intermediate (G5–G9)
+const RATIO_SEC  = 0.147;  // Secondary (G10–G12)
+
+// ── DOM references ───────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const sliders = {
+  students:   $('sl-students'),
+  rate:       $('sl-rate'),
+  consultant: $('sl-pct-consultant'),
+  core:       $('sl-pct-core'),
+  first:      $('sl-pct-first'),
+  second:     $('sl-pct-second'),
+  third:      $('sl-pct-third'),
+  gfAcad:     $('sl-gf-acad'),
+  gfHs:       $('sl-gf-hs'),
+  gfOps:      $('sl-gf-ops'),
+  maxCls:     $('sl-maxcls'),
+  buffer:     $('sl-buffer'),
+  eyCls:      $('sl-eycls'),
+};
+
+function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+function fmtM(n) { return (n / 1e6).toFixed(1) + 'M'; }
+function fmtSAR(n) { return 'SAR ' + fmt(n); }
+function fmtUSD(n) { return 'USD ' + fmt(Math.round(n * SAR_TO_USD)); }
+
+// ── RECALCULATE ──────────────────────────────────────────────
+function recalc() {
+  const students = +sliders.students.value;
+  const rate     = +sliders.rate.value;
+  const pConsult = +sliders.consultant.value;
+  const pCore    = +sliders.core.value;
+  const pFirst   = +sliders.first.value;
+  const pSecond  = +sliders.second.value;
+  const pThird   = +sliders.third.value;
+  const gfAcad   = +sliders.gfAcad.value;
+  const gfHs     = +sliders.gfHs.value;
+  const gfOps    = +sliders.gfOps.value;
+  const maxCls   = +sliders.maxCls.value;
+  const buffer   = +sliders.buffer.value / 100;
+  const eyCls    = +sliders.eyCls.value;
+
+  // Update labels
+  $('lbl-students').textContent = fmt(students);
+  $('lbl-rate').textContent = fmt(rate);
+  $('lbl-pct-consultant').textContent = pConsult + '%';
+  $('lbl-pct-core').textContent = pCore + '%';
+  $('lbl-pct-first').textContent = pFirst + '%';
+  $('lbl-pct-second').textContent = pSecond + '%';
+  $('lbl-pct-third').textContent = pThird + '%';
+  $('lbl-gf-acad').textContent = gfAcad.toFixed(2) + '×';
+  $('lbl-gf-hs').textContent = gfHs.toFixed(2) + '×';
+  $('lbl-gf-ops').textContent = gfOps.toFixed(2) + '×';
+  $('lbl-maxcls').textContent = maxCls;
+  $('lbl-buffer').textContent = Math.round(buffer * 100) + '%';
+  $('lbl-eycls').textContent = eyCls;
+
+  // Percentage bar
+  const pctTotal = pConsult + pCore + pFirst + pSecond + pThird;
+  $('pct-bar').children[0].style.width = pConsult + '%'; $('pct-bar').children[0].textContent = pConsult >= 5 ? pConsult+'%' : '';
+  $('pct-bar').children[1].style.width = pCore + '%';    $('pct-bar').children[1].textContent = pCore >= 5 ? pCore+'%' : '';
+  $('pct-bar').children[2].style.width = pFirst + '%';   $('pct-bar').children[2].textContent = pFirst >= 5 ? pFirst+'%' : '';
+  $('pct-bar').children[3].style.width = pSecond + '%';  $('pct-bar').children[3].textContent = pSecond >= 5 ? pSecond+'%' : '';
+  $('pct-bar').children[4].style.width = pThird + '%';   $('pct-bar').children[4].textContent = pThird >= 5 ? pThird+'%' : '';
+
+  const ptl = $('pct-total-line');
+  ptl.innerHTML = `<span>Total allocation</span><span>${pctTotal}%</span>`;
+  if (Math.abs(pctTotal - 100) > 0.1) {
+    ptl.className = 'total-line warn';
+    ptl.innerHTML = `<span>⚠ Total = ${pctTotal}% (should be 100%)</span><span style="color:var(--red)">${pctTotal > 100 ? 'OVER' : 'UNDER'}</span>`;
+  } else {
+    ptl.className = 'total-line';
+  }
+
+  // ── Student distribution ──
+  const ey  = Math.round(students * RATIO_EY);
+  const pri = Math.round(students * RATIO_PRI);
+  const int_ = Math.round(students * RATIO_INT);
+  const sec = students - ey - pri - int_;
+
+  $('kpi-ey').textContent  = fmt(ey);
+  $('kpi-pri').textContent = fmt(pri);
+  $('kpi-int').textContent = fmt(int_);
+  $('kpi-sec').textContent = fmt(sec);
+
+  // ── Classroom calculations (TBC) ──
+  const ey_cls  = Math.ceil(ey / eyCls * (1 + buffer));
+  const pri_cls = Math.ceil(pri / maxCls * (1 + buffer));
+  const int_cls = Math.ceil(int_ / maxCls * (1 + buffer));
+  const sec_cls = Math.ceil(sec / maxCls * (1 + buffer));
+  const total_cls = ey_cls + pri_cls + int_cls + sec_cls;
+
+  // ── TBC area per student (NET m²/unit) ──
+  const EY_NET   = 55.0;   // avg of nursery/KG
+  const PRI_NET  = 43.12;  // elementary
+  const INT_NET  = 45.90;  // intermediate
+  const SEC_NET  = 48.12;  // secondary
+
+  // Lab ratios per TBC: 1 science lab per 10 classrooms, 1 ICT lab per 15
+  const pri_int_sec_cls = pri_cls + int_cls + sec_cls;
+  const n_sci_labs = Math.ceil(pri_int_sec_cls / 10) * 2; // ×2 for boys+girls
+  const n_ict_labs = Math.ceil(pri_int_sec_cls / 15) * 2;
+
+  // Science lab NET by level
+  const SCI_PRI_NET  = 60.1;
+  const SCI_INT_NET  = 62.96;
+  const SCI_SEC_NET  = 69.9;
+
+  // LRCs per TBC
+  const n_lrc = 6; // 2 per level (pri/int/sec) for boys+girls
+
+  // Arts & MPR per TBC
+  const art_rooms = Math.ceil(total_cls / 40) * 2; // ~1 per 40 classrooms, boys+girls
+  const mpr_rooms = Math.ceil(total_cls / 30) * 2;
+
+  // Build TBC table
+  let tbcRows = [];
+  let tbcTotalNet = 0, tbcTotalBUA = 0, tbcTotalCost = 0, tbcTotalQty = 0;
+
+  function addTBCSection(name) {
+    tbcRows.push({ section: name });
+  }
+  function addTBCRow(name, qty, netPerUnit, gf, rule) {
+    const totalNet = qty * netPerUnit;
+    const bua = totalNet * gf;
+    const cost = bua * rate;
+    tbcTotalNet += totalNet;
+    tbcTotalBUA += bua;
+    tbcTotalCost += cost;
+    tbcTotalQty += qty;
+    tbcRows.push({ name, qty, netPerUnit, totalNet, bua, cost, rule });
+  }
+
+  addTBCSection('CLASSROOMS');
+  addTBCRow('EY Classrooms (Nursery/KG)', ey_cls, EY_NET, gfAcad, `${eyCls}/class + ${Math.round(buffer*100)}% buf`);
+  addTBCRow('Primary Classrooms (G1–G4)', pri_cls, PRI_NET, gfAcad, `${maxCls}/class + ${Math.round(buffer*100)}% buf`);
+  addTBCRow('Intermediate Classrooms (G5–G9)', int_cls, INT_NET, gfAcad, `${maxCls}/class, gender sep G2+`);
+  addTBCRow('Secondary Classrooms (G10–G12)', sec_cls, SEC_NET, gfAcad, `${maxCls}/class, gender sep`);
+
+  addTBCSection('SCIENCE LABORATORIES');
+  // Distribute labs proportionally
+  const sci_pri = Math.ceil(pri_cls / 10) * 2;
+  const sci_int = Math.ceil(int_cls / 10) * 2;
+  const sci_sec = Math.ceil(sec_cls / 10) * 2;
+  addTBCRow('Primary Science Labs', sci_pri, SCI_PRI_NET, gfHs, '1 per 10 classrooms');
+  addTBCRow('Intermediate Science Labs', sci_int, SCI_INT_NET, gfHs, '1 per 10 classrooms');
+  addTBCRow('Secondary Science Labs', sci_sec, SCI_SEC_NET, gfHs, '1 per 10 classrooms');
+  addTBCRow('Science Prep Rooms', Math.ceil((sci_pri+sci_int+sci_sec)/5), 18.0, gfHs, '1 per 2–3 labs');
+  addTBCRow('Chemical Storage', 2, 12.0, gfHs, 'Secondary labs');
+
+  addTBCSection('COMPUTER & ICT LABS');
+  const ict_pri = Math.ceil(pri_cls / 15) * 2;
+  const ict_sec = Math.ceil((int_cls + sec_cls) / 15) * 2;
+  addTBCRow('Primary Computer Labs', ict_pri, 60.1, gfHs, '~1 per 15 classrooms');
+  addTBCRow('Secondary Computer Labs', ict_sec, 69.9, gfHs, '~1 per 15 classrooms');
+
+  addTBCSection('LEARNING RESOURCE CENTRES');
+  addTBCRow('Primary LRC / Library', 2, 75.1, gfAcad, 'Per school level');
+  addTBCRow('Intermediate LRC', 2, 74.7, gfAcad, 'Per school level');
+  addTBCRow('Secondary LRC', 2, 88.6, gfAcad, 'Per school level');
+
+  addTBCSection('ARTS & MULTI-PURPOSE');
+  addTBCRow('Primary Art Atelier', Math.max(2, Math.ceil(pri_cls / 20)), 41.9, gfAcad, 'TBC per 10–20 cls');
+  addTBCRow('Intermediate/Secondary Arts', Math.max(2, Math.ceil((int_cls+sec_cls) / 25)), 51.0, gfAcad, 'TBC per 10–25 cls');
+  addTBCRow('Multi-Purpose Rooms', mpr_rooms, 45.0, gfAcad, '~1 per 30 cls');
+
+  addTBCSection('OUTDOOR / COURTS');
+  const n_courts = Math.max(4, Math.ceil(students / 500));
+  addTBCRow('Outdoor Multi-Sport Courts', n_courts, 450.0, gfHs, 'TBC min pitch per level');
+
+  // Render TBC table
+  let tbcHTML = '';
+  for (const row of tbcRows) {
+    if (row.section) {
+      tbcHTML += `<tr class="section-head"><td colspan="8">${row.section}</td></tr>`;
+    } else {
+      tbcHTML += `<tr>
+        <td>${row.name}</td>
+        <td>${row.qty}</td>
+        <td>${row.netPerUnit.toFixed(1)}</td>
+        <td>${fmt(row.totalNet)}</td>
+        <td>${fmt(row.bua)}</td>
+        <td>${fmt(row.cost)}</td>
+        <td>${fmt(row.cost * SAR_TO_USD)}</td>
+        <td style="font-size:9px">${row.rule}</td>
+      </tr>`;
+    }
+  }
+  tbcHTML += `<tr class="subtotal-row">
+    <td>TBC SUBTOTAL</td>
+    <td>${tbcTotalQty}</td>
+    <td>—</td>
+    <td>${fmt(tbcTotalNet)}</td>
+    <td>${fmt(tbcTotalBUA)}</td>
+    <td>${fmt(tbcTotalCost)}</td>
+    <td>${fmt(tbcTotalCost * SAR_TO_USD)}</td>
+    <td></td>
+  </tr>`;
+  $('tbody-tbc').innerHTML = tbcHTML;
+
+  // ── Non-TBC Spaces ──
+  let ntbcRows = [];
+  let ntbcTotalNet = 0, ntbcTotalBUA = 0, ntbcTotalCost = 0, ntbcTotalQty = 0;
+
+  function addNTBCSection(name) { ntbcRows.push({ section: name }); }
+  function addNTBCRow(name, qty, netPerUnit, gf, basis) {
+    const totalNet = qty * netPerUnit;
+    const bua = totalNet * gf;
+    const cost = bua * rate;
+    ntbcTotalNet += totalNet;
+    ntbcTotalBUA += bua;
+    ntbcTotalCost += cost;
+    ntbcTotalQty += qty;
+    ntbcRows.push({ name, qty, netPerUnit, totalNet, bua, cost, basis });
+  }
+
+  const scale = students / 7000;
+
+  addNTBCSection('SEN & WELLBEING');
+  addNTBCRow('SEN Resource Rooms', Math.max(4, Math.round(10 * scale)), 25.0, gfAcad, 'International best practice');
+  addNTBCRow('1:1 Assessment Rooms', Math.max(4, Math.round(8 * scale)), 12.0, gfAcad, 'Best practice');
+  addNTBCRow('Speech & Language Therapy', Math.max(2, Math.round(4 * scale)), 16.0, gfAcad, 'Best practice');
+  addNTBCRow('Occupational Therapy', 2, 20.0, gfAcad, 'Best practice');
+  addNTBCRow('Sensory Rooms', 2, 24.0, gfAcad, 'Best practice');
+  addNTBCRow('Counsellor Rooms', Math.max(2, Math.round(4 * scale)), 12.0, gfAcad, 'Best practice');
+  addNTBCRow('Medical Clinic / Nurse', 2, 20.0, gfAcad, 'Per wing');
+  addNTBCRow('Isolation / Rest Room', 2, 10.0, gfAcad, 'Per wing');
+
+  addNTBCSection('SPECIALIST STUDIOS');
+  addNTBCRow('Maker / Robotics Lab', 2, 120.0, gfHs, 'STEM education');
+  addNTBCRow('Art Studio', 2, 90.0, gfHs, 'Creative arts');
+  addNTBCRow('Music / Drama Room', 2, 80.0, gfHs, 'Performing arts');
+
+  addNTBCSection('SPORTS & PE (beyond TBC courts)');
+  addNTBCRow('Indoor Sports Hall', 2, 900.0, gfHs, 'Institutional standard');
+  addNTBCRow('25m Swimming Pool Complex', 1, 1717.0, gfHs, 'Institutional standard');
+  addNTBCRow('Sports Changing Rooms', 4, 160.0, gfHs, 'Per hall + pool');
+  addNTBCRow('Sports Storage', 4, 25.0, gfHs, 'Equipment store');
+
+  addNTBCSection('DINING & FOOD SERVICES');
+  const n_dining = Math.max(1, Math.round(2 * scale));
+  addNTBCRow('Dining Halls (700-seat)', n_dining, 1100.0, gfHs, 'Multi-shift model');
+  addNTBCRow('Commercial Kitchen', n_dining, 300.0, gfHs, 'Per dining hall');
+  addNTBCRow('Cold Room / Dry Store', n_dining * 2, 37.5, gfOps, 'Per kitchen');
+
+  addNTBCSection('AUDITORIUM & ASSEMBLY');
+  addNTBCRow('Auditorium (300 seats)', 1, 740.0, gfHs, 'Campus life / events');
+  addNTBCRow('Atrium / Learning Commons', 1, Math.max(1000, Math.round(2000 * scale)), gfHs, 'Gathering space');
+  addNTBCRow('Seminar Rooms', Math.max(2, Math.round(4 * scale)), 45.0, gfAcad, 'Workshops / PD');
+  addNTBCRow('Breakout Rooms', Math.max(4, Math.round(8 * scale)), 25.0, gfAcad, 'Collaborative');
+
+  addNTBCSection('EXAM CENTRE');
+  addNTBCRow('Exam Hall (300 candidates)', 1, 750.0, gfAcad, 'Institutional standard');
+  addNTBCRow('Candidate Holding Room', 2, 60.0, gfAcad, 'Pre-exam staging');
+
+  addNTBCSection('STAFF & ADMIN');
+  addNTBCRow('Staff Workrooms', Math.max(6, Math.round(12 * scale)), 45.0, gfAcad, 'Distributed');
+  addNTBCRow('Staff Lounges', 2, 90.0, gfAcad, 'Per wing');
+  addNTBCRow('Teacher Training Rooms', 2, 45.0, gfAcad, 'PD sessions');
+  addNTBCRow('Reception & Welcome', 2, 25.0, gfAcad, 'Campus entrance');
+  addNTBCRow("Principal's Office", 1, 20.0, gfAcad, 'Leadership');
+  addNTBCRow('Admissions Office', 2, 18.0, gfAcad, 'Parent-facing');
+  addNTBCRow('Finance Office', 2, 40.0, gfAcad, 'Fee collection');
+  addNTBCRow('Board / SMC Room', 1, 30.0, gfAcad, 'Governance');
+  addNTBCRow('School Store / Bookshop', 1, 80.0, gfAcad, 'Student supplies');
+  addNTBCRow('Uniform Shop', 1, 60.0, gfAcad, 'Student uniforms');
+
+  addNTBCSection('IT & SECURITY');
+  addNTBCRow('Server Room / MDF', 2, 20.0, gfOps, 'Campus IT backbone');
+  addNTBCRow('Security Control Room', 1, 20.0, gfOps, 'CCTV / access');
+  addNTBCRow('IT Helpdesk', 2, 18.0, gfOps, 'Tech support');
+
+  addNTBCSection('TRANSPORT & OTHER');
+  addNTBCRow('Transport Office / Driver Lounge', 1, 43.0, gfOps, 'Bus fleet');
+  addNTBCRow('Prayer Room / Musalla', 4, 60.0, gfAcad, 'Spiritual spaces');
+
+  // Render Non-TBC table
+  let ntbcHTML = '';
+  for (const row of ntbcRows) {
+    if (row.section) {
+      ntbcHTML += `<tr class="section-head"><td colspan="8">${row.section}</td></tr>`;
+    } else {
+      ntbcHTML += `<tr>
+        <td>${row.name}</td>
+        <td>${row.qty}</td>
+        <td>${row.netPerUnit.toFixed(1)}</td>
+        <td>${fmt(row.totalNet)}</td>
+        <td>${fmt(row.bua)}</td>
+        <td>${fmt(row.cost)}</td>
+        <td>${fmt(row.cost * SAR_TO_USD)}</td>
+        <td style="font-size:9px">${row.basis}</td>
+      </tr>`;
+    }
+  }
+  ntbcHTML += `<tr class="subtotal-row">
+    <td>NON-TBC SUBTOTAL</td>
+    <td>${ntbcTotalQty}</td>
+    <td>—</td>
+    <td>${fmt(ntbcTotalNet)}</td>
+    <td>${fmt(ntbcTotalBUA)}</td>
+    <td>${fmt(ntbcTotalCost)}</td>
+    <td>${fmt(ntbcTotalCost * SAR_TO_USD)}</td>
+    <td></td>
+  </tr>`;
+  $('tbody-nontbc').innerHTML = ntbcHTML;
+
+  // ── Grand totals ──
+  const grandNet  = tbcTotalNet + ntbcTotalNet;
+  const grandBUA  = tbcTotalBUA + ntbcTotalBUA;
+  const grandCost = tbcTotalCost + ntbcTotalCost;
+  const totalRooms = tbcTotalQty + ntbcTotalQty;
+
+  // Top KPIs
+  $('kpi-rooms').textContent    = fmt(totalRooms);
+  $('kpi-net').textContent      = fmt(grandNet);
+  $('kpi-bua').textContent      = fmt(grandBUA);
+  $('kpi-cost-sar').textContent = 'SAR ' + fmtM(grandCost);
+  $('kpi-cost-usd').textContent = 'USD ' + fmtM(grandCost * SAR_TO_USD);
+  const footprint = grandBUA / NUM_FLOORS;
+  const coverage  = footprint / SITE_AREA * 100;
+  $('kpi-coverage').textContent = coverage.toFixed(0) + '%';
+
+  // Cost breakdown by fix stage
+  const cConsult = grandCost * pConsult / 100;
+  const cCore    = grandCost * pCore / 100;
+  const cFirst   = grandCost * pFirst / 100;
+  const cSecond  = grandCost * pSecond / 100;
+  const cThird   = grandCost * pThird / 100;
+
+  $('out-consultant').textContent = fmtSAR(cConsult);
+  $('out-core').textContent       = fmtSAR(cCore);
+  $('out-first').textContent      = fmtSAR(cFirst);
+  $('out-second').textContent     = fmtSAR(cSecond);
+  $('out-third').textContent      = fmtSAR(cThird);
+  $('out-grand').textContent      = fmtSAR(grandCost) + '  /  ' + fmtUSD(grandCost);
+
+  // Cost by space type
+  $('out-tbc-total').textContent    = fmtSAR(tbcTotalCost);
+  $('out-nontbc-total').textContent = fmtSAR(ntbcTotalCost);
+  $('out-combined').textContent     = fmtSAR(grandCost);
+
+  const tbcPct = grandCost > 0 ? (tbcTotalCost / grandCost * 100) : 50;
+  $('bar-tbc').style.width    = tbcPct + '%';
+  $('bar-tbc').textContent    = 'TBC ' + tbcPct.toFixed(0) + '%';
+  $('bar-nontbc').style.width = (100 - tbcPct) + '%';
+  $('bar-nontbc').textContent = 'Non-TBC ' + (100 - tbcPct).toFixed(0) + '%';
+
+  // Area summary
+  $('out-tbc-net').textContent    = fmt(tbcTotalNet) + ' m²';
+  $('out-nontbc-net').textContent = fmt(ntbcTotalNet) + ' m²';
+  $('out-total-net').textContent  = fmt(grandNet) + ' m²';
+  $('out-total-bua').textContent  = fmt(grandBUA) + ' m²';
+  $('out-footprint').textContent  = fmt(footprint) + ' m²';
+  $('out-site-cov').textContent   = coverage.toFixed(1) + '%';
+  $('out-m2-student').textContent = (grandBUA / students).toFixed(1) + ' m²';
+  $('out-cost-student').textContent = 'SAR ' + fmt(grandCost / students) + ' / USD ' + fmt(grandCost / students * SAR_TO_USD);
+}
+
+// ── BIND ALL SLIDERS ─────────────────────────────────────────
+Object.values(sliders).forEach(sl => {
+  sl.addEventListener('input', recalc);
+});
+
+// ── INITIAL CALCULATION ──────────────────────────────────────
+recalc();
+</script>
+</body>
+</html>
