@@ -695,7 +695,7 @@ function buildTuitionTable() {
     }
     html += `<tr>
       <td>${g.name}</td>
-      <td style="text-align:center;color:var(--md-grey);font-size:9px;">${g.current}</td>
+      <td><input type="number" id="students-${g.id}" value="${g.current}" min="0" step="10" style="width:58px;"></td>
       <td><input type="number" id="fee-${g.id}" value="${g.defaultFee}" min="0" step="500"></td>
     </tr>`;
   }
@@ -770,6 +770,14 @@ function readInputs() {
   cfg.overhead = +$('sl-overhead').value;
   cfg.collection = +$('sl-collection').value / 100;
 
+  // Per-grade student counts (editable baseline)
+  cfg.baseStudents = {};
+  cfg.baseTotal = 0;
+  for (const g of GRADES) {
+    cfg.baseStudents[g.id] = +(document.getElementById('students-' + g.id)?.value || g.current);
+    cfg.baseTotal += cfg.baseStudents[g.id];
+  }
+
   // Per-grade tuition fees
   cfg.tuition = {};
   for (const g of GRADES) {
@@ -788,18 +796,20 @@ function readInputs() {
 }
 
 function calcEnrollment(cfg) {
+  const baseTotal = cfg.baseTotal || CURRENT_TOTAL;
   const years = [];
   for (let y = 0; y < NUM_YEARS; y++) {
     let total;
-    if (y === 0) total = CURRENT_TOTAL;
+    if (y === 0) total = baseTotal;
     else if (y >= cfg.growthYears) total = cfg.targetTotal;
-    else total = CURRENT_TOTAL + (cfg.targetTotal - CURRENT_TOTAL) * (y / cfg.growthYears);
+    else total = baseTotal + (cfg.targetTotal - baseTotal) * (y / cfg.growthYears);
 
     const enrollment = {};
     let assigned = 0;
     for (let i = 0; i < GRADES.length - 1; i++) {
       const g = GRADES[i];
-      enrollment[g.id] = Math.round(total * g.current / CURRENT_TOTAL);
+      const base = cfg.baseStudents[g.id] || g.current;
+      enrollment[g.id] = Math.round(total * base / Math.max(1, baseTotal));
       assigned += enrollment[g.id];
     }
     enrollment[GRADES[GRADES.length - 1].id] = Math.round(total) - assigned;
