@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PISES Revenue Simulator — Usage Guide</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  @media print { .no-print { display: none !important; } body { font-size: 10pt; } .page-break { page-break-before: always; } }
+  :root { --green: #01411C; --gold: #C49A2A; --blue: #1565C0; --red: #C62828; --orange: #E65100; --purple: #7B1FA2; --teal: #00796B; --grey: #555; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #222; line-height: 1.65; padding: 0; background: #fff; }
+
+  /* Cover */
+  .cover { background: linear-gradient(135deg, #012F14 0%, var(--green) 50%, #015A28 100%); color: #fff; padding: 70px 50px 50px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+  .cover h1 { font-size: 32px; font-weight: 900; letter-spacing: 1px; margin-bottom: 8px; }
+  .cover .sub { color: var(--gold); font-size: 16px; margin-bottom: 40px; font-weight: 600; }
+  .cover .meta { font-size: 13px; opacity: 0.7; margin-top: 30px; }
+  .cover .badge { display: inline-block; background: linear-gradient(135deg, #D4A72C, var(--gold)); color: var(--green); padding: 10px 30px; border-radius: 25px; font-size: 13px; font-weight: 800; letter-spacing: 1.5px; margin: 20px 0; }
+  .cover .logo-text { font-size: 60px; font-weight: 900; letter-spacing: 4px; margin-bottom: 6px; color: var(--gold); }
+
+  /* Content */
+  .content { max-width: 750px; margin: 0 auto; padding: 40px 30px; }
+  h2 { font-size: 20px; font-weight: 800; color: var(--green); margin: 36px 0 14px; padding-bottom: 6px; border-bottom: 3px solid var(--gold); }
+  h3 { font-size: 15px; font-weight: 700; margin: 22px 0 8px; padding-left: 12px; border-left: 4px solid var(--green); }
+  h4 { font-size: 12px; font-weight: 700; color: var(--grey); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  p { margin-bottom: 10px; font-size: 12px; }
+  ul, ol { margin: 8px 0 14px 22px; font-size: 12px; }
+  li { margin-bottom: 5px; }
+  strong { color: var(--green); }
+
+  .tip { background: #E8F5E9; border-left: 4px solid var(--green); padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 11px; }
+  .tip b { color: var(--green); }
+  .warn { background: #FFF3E0; border-left: 4px solid var(--orange); padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 11px; }
+  .warn b { color: var(--orange); }
+  .note { background: #E3F2FD; border-left: 4px solid var(--blue); padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 11px; }
+  .note b { color: var(--blue); }
+
+  /* Control reference table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 11px; }
+  th { background: var(--green); color: #fff; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; }
+  td { padding: 7px 10px; border-bottom: 1px solid #E8E8E8; vertical-align: top; }
+  tr:nth-child(even) { background: #FAFBFC; }
+  .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+  .toc { list-style: none; margin-left: 0; }
+  .toc li { padding: 6px 0; border-bottom: 1px dotted #DDD; font-size: 13px; }
+  .toc li span { float: right; color: var(--grey); font-size: 11px; }
+  .section-tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 9px; font-weight: 700; color: #fff; vertical-align: middle; margin-right: 6px; }
+  .tag-green { background: var(--green); }
+  .tag-gold { background: var(--gold); color: var(--green); }
+  .tag-blue { background: var(--blue); }
+  .tag-red { background: var(--red); }
+  .tag-orange { background: var(--orange); }
+  .tag-purple { background: var(--purple); }
+  .tag-teal { background: var(--teal); }
+
+  .footer-bar { background: var(--green); color: var(--gold); text-align: center; padding: 16px; font-size: 10px; font-weight: 600; margin-top: 40px; }
+
+  /* Print button */
+  .print-btn { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: #fff; border: none; padding: 14px 24px; border-radius: 30px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 999; font-family: inherit; }
+  .print-btn:hover { background: #015A28; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">&#128438; Save as PDF (Ctrl+P)</button>
+
+<!-- ═══════ COVER PAGE ═══════ -->
+<div class="cover">
+  <div class="logo-text">PISES</div>
+  <h1>Revenue &amp; Cost Projection Simulator</h1>
+  <div class="sub">Usage Guide &amp; Control Reference</div>
+  <div class="badge">VERSION 2.0</div>
+  <p style="max-width:500px;margin:20px auto 0;font-size:13px;opacity:0.85;">
+    A comprehensive guide to using the PISES New Campus Financial Model simulator.
+    Covers every slider, input, tab, and KSA benchmark indicator.
+  </p>
+  <div class="meta">
+    Pakistan International School (English Section), Riyadh<br>
+    New Campus Project — Financial Planning Tool<br><br>
+    Confidential Document &bull; 2025
+  </div>
+</div>
+
+<!-- ═══════ CONTENT ═══════ -->
+<div class="content">
+
+<div class="page-break"></div>
+<h2>Table of Contents</h2>
+<ul class="toc">
+  <li><strong>1.</strong> Overview &amp; Getting Started <span>Page 2</span></li>
+  <li><strong>2.</strong> Screen Layout <span>Page 2</span></li>
+  <li><strong>3.</strong> Left Panel — Input Controls <span>Page 3</span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.1 Growth Trajectory <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.2 Tuition Fees Per Grade <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.3 Other Fees Per Student <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.4 New Building Discount <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.5 Staff Costs <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.6 Operational Costs <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 3.7 Collection &amp; Assumptions <span></span></li>
+  <li><strong>4.</strong> Center Panel — KPIs &amp; Projections <span>Page 6</span></li>
+  <li>&nbsp;&nbsp;&nbsp; 4.1 KPI Summary Bar <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 4.2 Revenue vs Cost Chart <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 4.3 Tab: Enrollment &amp; Sections <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 4.4 Tab: Revenue Projection <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 4.5 Tab: Staffing &amp; Costs <span></span></li>
+  <li>&nbsp;&nbsp;&nbsp; 4.6 Tab: Profit &amp; Loss <span></span></li>
+  <li><strong>5.</strong> Right Panel — Year Detail &amp; Health Check <span>Page 8</span></li>
+  <li><strong>6.</strong> KSA Benchmark Indicators <span>Page 9</span></li>
+  <li><strong>7.</strong> Worked Example / Quick Start <span>Page 10</span></li>
+  <li><strong>8.</strong> Glossary <span>Page 11</span></li>
+</ul>
+
+<!-- ═══════ SECTION 1 ═══════ -->
+<div class="page-break"></div>
+<h2>1. Overview &amp; Getting Started</h2>
+<p>
+  The <strong>PISES Revenue &amp; Cost Projection Simulator</strong> is a single-file, browser-based financial model
+  that projects enrollment, revenue, staffing, and profitability for the PISES new campus over a <strong>7-year horizon</strong>
+  (Year 0 = Current through Year 6).
+</p>
+<p>
+  <strong>How to open:</strong> Simply double-click <code>PISES_Revenue_Simulator.html</code> in any modern browser
+  (Chrome, Edge, Firefox, Safari). No installation, internet, or server needed.
+</p>
+<p>
+  <strong>How it works:</strong> Every slider or number input you change instantly recalculates all projections in real-time.
+  There is no "Submit" or "Calculate" button — the model is always live.
+</p>
+<div class="tip"><b>Tip:</b> All monetary values are in <strong>Saudi Riyals (SAR)</strong>. Reference: 1 USD = 3.75 SAR.</div>
+
+<!-- ═══════ SECTION 2 ═══════ -->
+<h2>2. Screen Layout</h2>
+<p>The simulator uses a <strong>3-column layout</strong>:</p>
+<table>
+  <tr><th>Column</th><th>Purpose</th><th>Width</th></tr>
+  <tr><td><strong>Left Panel</strong></td><td>All input controls — sliders, fee tables, cost parameters</td><td>~340px (scrollable)</td></tr>
+  <tr><td><strong>Center Panel</strong></td><td>KPI summary, revenue vs cost chart, and 4-tab projection tables</td><td>Flexible (fills remaining space)</td></tr>
+  <tr><td><strong>Right Panel</strong></td><td>Year selector, KSA health check, detailed breakdowns for selected year</td><td>~370px</td></tr>
+</table>
+<p>Each section in the left panel is a <strong>collapsible card</strong> — click the card header to expand or collapse it.</p>
+<div class="note"><b>Note:</b> On screens narrower than 1300px, the layout stacks vertically for mobile compatibility.</div>
+
+<!-- ═══════ SECTION 3 ═══════ -->
+<div class="page-break"></div>
+<h2>3. Left Panel — Input Controls</h2>
+<p>All inputs that drive the financial model are in the left panel, organized into 7 collapsible cards.</p>
+
+<!-- 3.1 -->
+<h3>3.1 <span class="section-tag tag-green">GROWTH TRAJECTORY</span></h3>
+<p>Controls how student enrollment grows from the current baseline to a target over time.</p>
+<table>
+  <tr><th>Control</th><th>What It Does</th><th>Range</th><th>Default</th></tr>
+  <tr>
+    <td><strong>Target Enrollment</strong></td>
+    <td>Total number of students the new campus aims to reach. The model linearly scales enrollment from the current baseline toward this target.</td>
+    <td>5,000 – 10,000</td>
+    <td>7,000</td>
+  </tr>
+  <tr>
+    <td><strong>Growth Period (Years)</strong></td>
+    <td>How many years to reach the target enrollment. After this year, enrollment stays flat at the target.</td>
+    <td>1 – 8 years</td>
+    <td>5</td>
+  </tr>
+  <tr>
+    <td><strong>Max Class Size</strong></td>
+    <td>Maximum students per section for Primary through Secondary grades. Determines how many sections are needed per grade (students ÷ max class size, rounded up).</td>
+    <td>20 – 35</td>
+    <td>25</td>
+  </tr>
+  <tr>
+    <td><strong>EY Class Size</strong></td>
+    <td>Maximum students per section for Early Years only (Nursery, Reception, KG). Typically smaller than older grades.</td>
+    <td>15 – 25</td>
+    <td>22</td>
+  </tr>
+</table>
+<div class="tip"><b>Tip:</b> TBC (Tatweer Building Company) Category A mandates max 25 students per class. The default matches this standard.</div>
+
+<!-- 3.2 -->
+<h3>3.2 <span class="section-tag tag-gold">TUITION FEES PER GRADE</span></h3>
+<p>A table listing all <strong>15 grade levels</strong> (Nursery through Grade 12), grouped by segment.</p>
+<table>
+  <tr><th>Column</th><th>What It Does</th></tr>
+  <tr>
+    <td><strong>Grade</strong></td>
+    <td>Grade name (read-only). Grades are grouped under segment headers: Early Years (EY), Primary (PRI), Intermediate (INT), Secondary (SEC).</td>
+  </tr>
+  <tr>
+    <td><strong>Students</strong></td>
+    <td><strong>Editable number input.</strong> The current (Year 0) student count for this grade. Change these to adjust the baseline enrollment distribution. The model scales proportionally from these numbers.</td>
+  </tr>
+  <tr>
+    <td><strong>Fee (SAR)</strong></td>
+    <td><strong>Editable number input.</strong> Annual tuition fee per student for this grade. Adjust per grade to model different fee structures.</td>
+  </tr>
+  <tr>
+    <td><strong>KSA Range</strong></td>
+    <td>Reference column showing the typical fee range (low–high) for comparable KSA community international schools at that grade level.</td>
+  </tr>
+</table>
+<div class="warn"><b>Important:</b> Changing the Students column changes the <em>baseline</em> (Year 0) enrollment. The model then scales proportionally from this new baseline to the target enrollment over the growth period.</div>
+
+<h4>Default Enrollment by Grade</h4>
+<table>
+  <tr><th>Segment</th><th>Grades</th><th>Current Students</th><th>Default Fee Range</th></tr>
+  <tr><td style="color:var(--green);font-weight:700;">Early Years (EY)</td><td>Nursery, Reception, KG</td><td>122 + 296 + 383 = 801</td><td>SAR 6,000 – 8,000</td></tr>
+  <tr><td style="color:var(--green);font-weight:700;">Primary (PRI)</td><td>Grade 1 – Grade 4</td><td>394 + 417 + 398 + 430 = 1,639</td><td>SAR 9,500 – 10,500</td></tr>
+  <tr><td style="color:var(--green);font-weight:700;">Intermediate (INT)</td><td>Grade 5 – Grade 9</td><td>422 + 468 + 429 + 381 + 351 = 2,051</td><td>SAR 11,000 – 13,000</td></tr>
+  <tr><td style="color:var(--green);font-weight:700;">Secondary (SEC)</td><td>Grade 10 – Grade 12</td><td>330 + 253 + 189 = 772</td><td>SAR 14,000 – 16,000</td></tr>
+  <tr><td colspan="2" style="font-weight:800;">TOTAL</td><td style="font-weight:800;">5,263</td><td></td></tr>
+</table>
+
+<!-- 3.3 -->
+<div class="page-break"></div>
+<h3>3.3 <span class="section-tag tag-blue">OTHER FEES PER STUDENT</span></h3>
+<p>Additional revenue items beyond tuition. Each fee type has a <strong>separate amount per segment</strong> (EY, PRI, INT, SEC).</p>
+<table>
+  <tr><th>Fee Type</th><th>Description</th><th>Applied To</th></tr>
+  <tr><td><strong>Books &amp; Materials</strong></td><td>Textbooks, workbooks, lab materials. Charged to all students.</td><td>All students</td></tr>
+  <tr><td><strong>Registration (New)</strong></td><td>One-time registration fee charged only to <em>new</em> students each year (enrollment increase over previous year).</td><td>New students only</td></tr>
+  <tr><td><strong>Transport</strong></td><td>School bus service fee. Applied to a % of students (controlled by Transport Utilization slider below).</td><td>% of students</td></tr>
+  <tr><td><strong>Uniform</strong></td><td>School uniform charges. Charged to all students.</td><td>All students</td></tr>
+  <tr><td><strong>Sports &amp; Activities</strong></td><td>Extra-curricular sports and activity programs. Applied to a % of students (controlled by Sports Opt-in slider below).</td><td>% of students</td></tr>
+  <tr><td><strong>Cafeteria / Meals</strong></td><td>Meal plan revenue. Charged to all students (EY default is 0).</td><td>All students</td></tr>
+</table>
+
+<h4>Utilization Sliders</h4>
+<table>
+  <tr><th>Slider</th><th>What It Does</th><th>Range</th><th>Default</th></tr>
+  <tr><td><strong>Transport Utilization</strong></td><td>Percentage of students who use the bus service. Only this % generates transport revenue.</td><td>0% – 100%</td><td>45%</td></tr>
+  <tr><td><strong>Sports/Activities Opt-in</strong></td><td>Percentage of students enrolled in paid sports/activities programs.</td><td>0% – 100%</td><td>60%</td></tr>
+</table>
+
+<!-- 3.4 -->
+<h3>3.4 <span class="section-tag tag-orange">NEW BUILDING DISCOUNT</span></h3>
+<p>Models a promotional tuition discount offered during the initial years of the new campus to attract enrollment.</p>
+<table>
+  <tr><th>Slider</th><th>What It Does</th><th>Range</th><th>Default</th></tr>
+  <tr><td><strong>Discount on Tuition</strong></td><td>Percentage discount applied to <em>gross tuition only</em> (not other fees). Shows as a deduction in the Revenue tab.</td><td>0% – 30%</td><td>10%</td></tr>
+  <tr><td><strong>Discount Duration</strong></td><td>Number of years the discount is active, starting from Year 1. Year 0 (current) has no discount. If set to 3, discount applies in Y1, Y2, Y3.</td><td>0 – 6 years</td><td>3 years</td></tr>
+</table>
+<div class="warn"><b>Important:</b> The discount only applies to <strong>tuition revenue</strong>. Other fees (books, transport, etc.) are not discounted. Year 0 is never discounted (it represents the current state).</div>
+
+<!-- 3.5 -->
+<h3>3.5 <span class="section-tag tag-red">STAFF COSTS</span></h3>
+<p>Monthly salary inputs for each staff category. The model calculates annual cost as: <code>headcount × monthly salary × 12 months × benefits multiplier</code>.</p>
+<table>
+  <tr><th>Slider</th><th>Who</th><th>Range (SAR/mo)</th><th>Default</th><th>KSA Benchmark</th></tr>
+  <tr><td><strong>Teacher Salary</strong></td><td>Classroom teachers across all segments</td><td>3,000 – 10,000</td><td>5,500</td><td>4,000 – 7,000</td></tr>
+  <tr><td><strong>Senior Teacher / HOD</strong></td><td>Heads of Department, senior teachers, coordinators</td><td>5,000 – 15,000</td><td>8,000</td><td>6,000 – 12,000</td></tr>
+  <tr><td><strong>Admin Staff</strong></td><td>Office, accounts, HR, IT support</td><td>3,000 – 10,000</td><td>5,000</td><td>3,500 – 7,000</td></tr>
+  <tr><td><strong>Support Staff</strong></td><td>Cleaners, security, drivers, maintenance workers</td><td>2,000 – 6,000</td><td>3,000</td><td>2,500 – 4,500</td></tr>
+  <tr><td><strong>Benefits Multiplier</strong></td><td>Multiplied on top of salary to account for housing allowance, GOSI, end-of-service, medical insurance</td><td>1.00× – 1.50×</td><td>1.25×</td><td>1.20× – 1.35× typical</td></tr>
+</table>
+
+<h4>How Staff Headcount Is Calculated</h4>
+<ul>
+  <li><strong>Teachers</strong> = Total sections × teacher ratio per segment (EY: 1.0, PRI: 1.15, INT: 1.35, SEC: 1.45 teachers per section)</li>
+  <li><strong>Senior / HODs</strong> = Total sections ÷ 10 (1 coordinator per ~10 sections)</li>
+  <li><strong>Admin</strong> = Total students ÷ 100 (1 admin per ~100 students)</li>
+  <li><strong>Support</strong> = Total students ÷ 150 (1 support staff per ~150 students)</li>
+</ul>
+<div class="note"><b>Note:</b> The teacher ratio is higher for older grades because subjects are more specialized (e.g., INT/SEC need separate science, math, language, elective teachers per section).</div>
+
+<!-- 3.6 -->
+<div class="page-break"></div>
+<h3>3.6 <span class="section-tag tag-purple">OPERATIONAL COSTS</span></h3>
+<p>Non-staff operational expenses, expressed as <strong>SAR per student per year</strong>. Total ops cost = rate × total enrollment.</p>
+<table>
+  <tr><th>Slider</th><th>What It Covers</th><th>Range</th><th>Default</th><th>KSA Benchmark</th></tr>
+  <tr><td><strong>Utilities &amp; Energy</strong></td><td>Electricity, water, cooling (high in Riyadh climate)</td><td>500 – 4,000</td><td>1,500</td><td>1,200 – 2,200</td></tr>
+  <tr><td><strong>Maintenance</strong></td><td>Building upkeep, equipment repair, landscaping</td><td>200 – 2,000</td><td>800</td><td>600 – 1,200</td></tr>
+  <tr><td><strong>Materials &amp; Consumables</strong></td><td>Office supplies, cleaning products, lab consumables</td><td>100 – 1,500</td><td>500</td><td>—</td></tr>
+  <tr><td><strong>Other Overhead</strong></td><td>Insurance, legal, licenses, miscellaneous</td><td>200 – 2,000</td><td>700</td><td>—</td></tr>
+</table>
+
+<!-- 3.7 -->
+<h3>3.7 <span class="section-tag tag-green">COLLECTION &amp; ASSUMPTIONS</span></h3>
+<table>
+  <tr><th>Slider</th><th>What It Does</th><th>Range</th><th>Default</th><th>KSA Benchmark</th></tr>
+  <tr><td><strong>Fee Collection Rate</strong></td><td>Percentage of billed fees actually collected. Accounts for late payments, defaults, and bad debt. Applied to total revenue after discount.</td><td>70% – 100%</td><td>92%</td><td>88% – 96% for KSA international schools</td></tr>
+</table>
+<div class="tip"><b>Formula:</b> Collected Revenue = (Net Tuition + Other Fees) × Collection Rate. This is the actual cash inflow used in P&amp;L calculations.</div>
+
+<!-- ═══════ SECTION 4 ═══════ -->
+<div class="page-break"></div>
+<h2>4. Center Panel — KPIs &amp; Projections</h2>
+
+<h3>4.1 KPI Summary Bar</h3>
+<p>Six key metrics displayed at the top, showing values for the <strong>final growth year</strong> (e.g., Y5 if growth period is 5 years):</p>
+<table>
+  <tr><th>KPI</th><th>What It Shows</th><th>Color Code</th></tr>
+  <tr><td><strong>Annual Revenue</strong></td><td>Total collected revenue for the target year</td><td><span class="color-dot" style="background:#C49A2A;"></span> Gold</td></tr>
+  <tr><td><strong>Annual Costs</strong></td><td>Total costs (staff + operations) for the target year</td><td><span class="color-dot" style="background:#C62828;"></span> Red</td></tr>
+  <tr><td><strong>Net Surplus</strong></td><td>Revenue minus costs. Green if positive, red if negative.</td><td><span class="color-dot" style="background:#1565C0;"></span> Blue / dynamic</td></tr>
+  <tr><td><strong>Students</strong></td><td>Total enrollment at target year</td><td><span class="color-dot" style="background:#388E3C;"></span> Green</td></tr>
+  <tr><td><strong>Total Staff</strong></td><td>Total headcount (teachers + seniors + admin + support)</td><td><span class="color-dot" style="background:#388E3C;"></span> Green</td></tr>
+  <tr><td><strong>Rev/Student</strong></td><td>Collected revenue divided by enrollment — efficiency measure</td><td><span class="color-dot" style="background:#388E3C;"></span> Green</td></tr>
+</table>
+
+<h3>4.2 Revenue vs Cost Chart</h3>
+<p>A horizontal bar chart showing <strong>revenue</strong> (green bars) vs <strong>costs</strong> (red bars) for each year (Y0–Y6). The rightmost column shows the <strong>net surplus/deficit</strong> for each year. This gives an instant visual of when the school becomes profitable.</p>
+
+<h3>4.3 Tab: Enrollment &amp; Sections</h3>
+<p>Shows for each grade, across all 7 years:</p>
+<ul>
+  <li><strong>Student count</strong> — how many students in that grade</li>
+  <li><strong>[Sections]</strong> — number of classroom sections needed (in grey brackets)</li>
+  <li><strong>(+Ns)</strong> — new sections added that year vs previous year (in red)</li>
+  <li><strong>Segment subtotals</strong> — EY, PRI, INT, SEC totals with section counts</li>
+  <li><strong>Total Enrollment row</strong> — grand total with total sections</li>
+  <li><strong>New Sections Added row</strong> — net new sections per year (orange)</li>
+</ul>
+
+<h3>4.4 Tab: Revenue Projection</h3>
+<p>Breaks down all revenue streams across 7 years:</p>
+<ul>
+  <li><strong>Tuition Revenue</strong> by segment (EY, PRI, INT, SEC)</li>
+  <li><strong>Gross Tuition</strong> total</li>
+  <li><strong>New Building Discount</strong> deduction (shown in red with % indicator)</li>
+  <li><strong>Net Tuition</strong> after discount</li>
+  <li><strong>Other Revenue</strong> — Books, Registration, Transport, Uniform, Sports, Cafeteria</li>
+  <li><strong>Total Revenue</strong> (after discount)</li>
+  <li><strong>Collected Revenue</strong> = Total × collection rate (the actual cash received)</li>
+</ul>
+
+<h3>4.5 Tab: Staffing &amp; Costs</h3>
+<p>Comprehensive staffing and cost breakdown:</p>
+<ul>
+  <li><strong>Sections by Segment</strong> — how many sections per segment, with new sections in red</li>
+  <li><strong>Staff Requirements</strong> — teachers by segment, seniors, admin, support, with new hires highlighted</li>
+  <li><strong>New Hires Per Year</strong> — exactly how many staff to recruit each year</li>
+  <li><strong>Annual Costs</strong> — teacher salaries, senior salaries, admin, support, utilities, maintenance, etc.</li>
+  <li><strong>Total Annual Cost</strong> — grand total</li>
+</ul>
+
+<div class="page-break"></div>
+<h3>4.6 Tab: Profit &amp; Loss</h3>
+<p>The P&amp;L summary view with key financial metrics:</p>
+<ul>
+  <li><strong>Gross Revenue</strong> — tuition + all other fees before any deductions</li>
+  <li><strong>Less: Building Discount</strong> — tuition discount deduction</li>
+  <li><strong>Less: Collection Loss</strong> — uncollected fees (based on collection rate)</li>
+  <li><strong>Collected Revenue</strong> — actual cash inflow</li>
+  <li><strong>Staff Costs</strong> and <strong>Operational Costs</strong></li>
+  <li><strong>Total Costs</strong></li>
+  <li><strong>Annual Surplus / (Deficit)</strong> — green-gold if positive, red if negative</li>
+  <li><strong>Cumulative Surplus</strong> — running total across all years</li>
+</ul>
+
+<h4>Key Ratios vs KSA Benchmarks (bottom of P&amp;L tab)</h4>
+<table>
+  <tr><th>Ratio</th><th>What It Means</th><th>Color Coding</th></tr>
+  <tr><td><strong>Staff Cost % of Revenue</strong></td><td>How much of collected revenue goes to staff. Lower is better.</td><td>Green: &lt;60% | Orange: 60-70% | Red: &gt;75%</td></tr>
+  <tr><td><strong>Net Margin %</strong></td><td>Surplus as % of collected revenue.</td><td>Green: &gt;15% | Blue: 8-15% | Orange: 3-8% | Red: &lt;3%</td></tr>
+  <tr><td><strong>Revenue per Student</strong></td><td>How much revenue each student generates on average.</td><td>Higher is better</td></tr>
+  <tr><td><strong>Cost per Student</strong></td><td>How much each student costs on average.</td><td>Lower is better</td></tr>
+</table>
+
+<!-- ═══════ SECTION 5 ═══════ -->
+<div class="page-break"></div>
+<h2>5. Right Panel — Year Detail &amp; Health Check</h2>
+
+<h3>Year Selector</h3>
+<p>Click any <strong>Y0 through Y6</strong> button to select a year. All right-panel cards update to show detailed breakdowns for that specific year.</p>
+
+<h3>KSA Financial Health Check</h3>
+<p>Five key financial health indicators with progress bars, compared to KSA school industry benchmarks:</p>
+<table>
+  <tr><th>Metric</th><th>KSA Target</th><th>What the Colors Mean</th></tr>
+  <tr><td><strong>Staff Cost % of Revenue</strong></td><td>&lt;60%</td><td>Green ≤60% | Orange 60-70% | Red &gt;75%</td></tr>
+  <tr><td><strong>Net Margin</strong></td><td>&gt;8%</td><td>Green ≥15% | Blue 8-15% | Orange 3-8% | Red &lt;3%</td></tr>
+  <tr><td><strong>Fee Collection</strong></td><td>&gt;92%</td><td>Green ≥92% | Orange 88-92% | Red &lt;88%</td></tr>
+  <tr><td><strong>OPEX / Student</strong></td><td>SAR 2.8K–4.2K</td><td>Green ≤4,200 | Orange &gt;4,200</td></tr>
+  <tr><td><strong>Student:Teacher Ratio</strong></td><td>15-22:1 optimal</td><td>Green 15-22 | Orange 12-15 or 22-25 | Red outside</td></tr>
+</table>
+
+<h3>Revenue Breakdown</h3>
+<p>Itemized revenue for the selected year: Gross Tuition, Discount (if active), Books, Transport, Uniform, Sports, Cafeteria, Registration, and the Collected Revenue grand total.</p>
+
+<h3>Cost Breakdown</h3>
+<p>Itemized costs: Teacher salaries, Senior/HOD salaries, Admin, Support, and a combined Operational costs line, with Total Costs grand total.</p>
+
+<h3>Staffing Requirements</h3>
+<p>Headcount summary for selected year: Teachers, Seniors, Admin, Support, Total. If there are new hires that year, shows the count in red.</p>
+
+<h3>Where New Hiring Happens</h3>
+<p>Shows exactly <strong>which grades</strong> added new sections in the selected year and how many new teachers are needed for each. Below that, a segment-level summary of new teacher hires.</p>
+<div class="note"><b>Note:</b> Y0 shows "Baseline" since it represents the current state with no new hires.</div>
+
+<h3>Per-Student Economics</h3>
+<p>Key per-student metrics for the selected year:</p>
+<ul>
+  <li><strong>Revenue / Student</strong> — collected revenue ÷ enrollment</li>
+  <li><strong>Cost / Student</strong> — total cost ÷ enrollment</li>
+  <li><strong>Net / Student</strong> — surplus or deficit per student (green if positive, red if negative)</li>
+  <li><strong>Staff Cost %</strong> — staff costs as % of revenue</li>
+  <li><strong>Student:Teacher ratio</strong></li>
+</ul>
+
+<!-- ═══════ SECTION 6 ═══════ -->
+<div class="page-break"></div>
+<h2>6. KSA Benchmark Indicators</h2>
+<p>Throughout the simulator, you'll see small colored dots and text hints. These compare your current settings against KSA school industry standards:</p>
+<table>
+  <tr><th>Indicator</th><th>Meaning</th></tr>
+  <tr><td><span class="color-dot" style="background:#388E3C;"></span> <strong>Green dot / text</strong></td><td>Value is within the healthy KSA benchmark range</td></tr>
+  <tr><td><span class="color-dot" style="background:#E65100;"></span> <strong>Orange/Amber dot / text</strong></td><td>Value is at the edge of the benchmark range — proceed with caution</td></tr>
+  <tr><td><span class="color-dot" style="background:#C62828;"></span> <strong>Red dot / text</strong></td><td>Value is outside the recommended KSA range — review needed</td></tr>
+  <tr><td><span class="color-dot" style="background:#1565C0;"></span> <strong>Blue text</strong></td><td>Informational benchmark — no pass/fail, just reference data</td></tr>
+</table>
+
+<h4>Where Benchmarks Appear</h4>
+<ul>
+  <li><strong>Below sliders</strong> — small text showing the KSA standard range (e.g., "KSA community school: SAR 4,000-7,000/mo")</li>
+  <li><strong>KSA Range column</strong> in tuition table — typical fee ranges per grade</li>
+  <li><strong>KSA Financial Health Check</strong> panel — 5 metrics with progress bars</li>
+  <li><strong>Key Ratios</strong> in P&amp;L tab — color-coded ratio values</li>
+  <li><strong>Dynamic coloring</strong> on Teacher Salary, Collection Rate, and Discount sliders — hint text changes color as you adjust</li>
+</ul>
+
+<!-- ═══════ SECTION 7 ═══════ -->
+<div class="page-break"></div>
+<h2>7. Worked Example — Quick Start</h2>
+<p>Follow these steps to model a common scenario:</p>
+
+<h4>Scenario: "What if we target 7,000 students over 5 years with a 10% discount for 3 years?"</h4>
+<ol>
+  <li><strong>Open the simulator</strong> in your browser — defaults already match this scenario.</li>
+  <li><strong>Check the KPI bar</strong> at the top center — note the Annual Revenue, Costs, and Net Surplus for Y5.</li>
+  <li><strong>Click the P&amp;L tab</strong> — check the Annual Surplus row. Are all years positive?</li>
+  <li><strong>Look at the Health Check</strong> (right panel) — is Staff Cost % green (&lt;60%)? Is Net Margin strong?</li>
+  <li><strong>Click Y1 in the year selector</strong> — this is the first year with the discount. Check if the school is still profitable.</li>
+</ol>
+
+<h4>Scenario: "What if we increase fees by 15%?"</h4>
+<ol>
+  <li>Go to the <strong>Tuition Fees</strong> card (gold header).</li>
+  <li>For each grade, change the Fee field. E.g., Nursery from 6,000 to 6,900, Reception from 7,000 to 8,050, etc.</li>
+  <li>Watch the <strong>KPI bar</strong> and <strong>mini chart</strong> update in real-time.</li>
+  <li>Check the <strong>KSA Range column</strong> — are your new fees still within the benchmark range?</li>
+</ol>
+
+<h4>Scenario: "What if teacher salaries increase to SAR 7,000?"</h4>
+<ol>
+  <li>Go to the <strong>Staff Costs</strong> card (red header).</li>
+  <li>Drag the <strong>Teacher Salary</strong> slider to 7,000.</li>
+  <li>Watch the benchmark hint below — it should show a green dot (still within KSA range).</li>
+  <li>Check the <strong>P&amp;L tab</strong> — how does Net Margin change?</li>
+  <li>Check the <strong>Health Check</strong> — has Staff Cost % moved from green to orange?</li>
+</ol>
+
+<h4>Scenario: "What if enrollment grows slower — 8 years instead of 5?"</h4>
+<ol>
+  <li>Go to the <strong>Growth Trajectory</strong> card.</li>
+  <li>Drag <strong>Growth Period</strong> slider from 5 to 8.</li>
+  <li>The KPI bar now shows Y8 values (or Y6 if capped). Enrollment grows more gradually.</li>
+  <li>Check the <strong>mini chart</strong> — the revenue-cost gap should narrow in early years.</li>
+  <li>Click <strong>Staffing tab</strong> — new hires per year should be smaller (spread over more years).</li>
+</ol>
+
+<!-- ═══════ SECTION 8 ═══════ -->
+<div class="page-break"></div>
+<h2>8. Glossary</h2>
+<table>
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td><strong>SAR</strong></td><td>Saudi Arabian Riyal (1 USD = 3.75 SAR)</td></tr>
+  <tr><td><strong>EY</strong></td><td>Early Years — Nursery, Reception, KG</td></tr>
+  <tr><td><strong>PRI</strong></td><td>Primary — Grades 1–4</td></tr>
+  <tr><td><strong>INT</strong></td><td>Intermediate — Grades 5–9</td></tr>
+  <tr><td><strong>SEC</strong></td><td>Secondary — Grades 10–12</td></tr>
+  <tr><td><strong>Section</strong></td><td>One classroom group. If a grade has 100 students and max class size is 25, it needs 4 sections.</td></tr>
+  <tr><td><strong>HOD</strong></td><td>Head of Department</td></tr>
+  <tr><td><strong>TBC</strong></td><td>Tatweer Building Company — Saudi authority for school building standards</td></tr>
+  <tr><td><strong>GOSI</strong></td><td>General Organization for Social Insurance — Saudi social security contribution</td></tr>
+  <tr><td><strong>EOS</strong></td><td>End of Service — mandatory gratuity payment in Saudi labor law</td></tr>
+  <tr><td><strong>Benefits Multiplier</strong></td><td>Factor applied to base salary to include housing, GOSI, EOS, medical. A 1.25× multiplier means total cost is 25% above base salary.</td></tr>
+  <tr><td><strong>Collection Rate</strong></td><td>Percentage of billed fees that are actually received as cash. Accounts for non-payment and delays.</td></tr>
+  <tr><td><strong>OPEX</strong></td><td>Operational Expenditure — non-staff running costs</td></tr>
+  <tr><td><strong>CAPEX</strong></td><td>Capital Expenditure — building and infrastructure investment (modeled in the separate Cost Simulator)</td></tr>
+  <tr><td><strong>Net Margin</strong></td><td>Surplus as a percentage of collected revenue. Measures overall profitability.</td></tr>
+  <tr><td><strong>KSA Benchmark</strong></td><td>Industry standard ranges based on comparable community international schools in Riyadh, 2024-25 data.</td></tr>
+  <tr><td><strong>Y0</strong></td><td>Year 0 = Current state / baseline (no discount, no growth)</td></tr>
+  <tr><td><strong>Y1–Y6</strong></td><td>Projection years 1 through 6</td></tr>
+</table>
+
+<div class="tip" style="margin-top:30px;">
+  <b>Need the Construction Cost Simulator?</b> See the companion file <code>PISES_Cost_Simulator.html</code> for new campus building cost projections based on TBC Category A standards.
+</div>
+
+</div>
+
+<div class="footer-bar">
+  CONFIDENTIAL | Pakistan International School (English Section), Riyadh | Revenue Simulator Usage Guide v2.0 | 2025
+</div>
+
+</body>
+</html>
