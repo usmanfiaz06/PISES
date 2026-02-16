@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PISES — Revenue &amp; Cost Projection Simulator</title>
+<style>
+  :root {
+    --dk-green: #01411C;
+    --md-green: #388E3C;
+    --lt-green: #E8F5E9;
+    --gold: #C49A2A;
+    --lt-gold: #FFF8E1;
+    --dk-grey: #424242;
+    --md-grey: #757575;
+    --lt-grey: #F5F5F5;
+    --border: #BDBDBD;
+    --white: #FFFFFF;
+    --red: #C62828;
+    --blue: #1565C0;
+    --orange: #E65100;
+    --purple: #7B1FA2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Calibri', Arial, sans-serif;
+    background: var(--lt-grey);
+    color: var(--dk-grey);
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ───────────────────────────────────── */
+  .header {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 18px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+  .header .sub { color: var(--gold); font-size: 11px; margin-top: 2px; }
+  .header .badge {
+    background: var(--gold);
+    color: var(--dk-green);
+    padding: 4px 14px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ── LAYOUT ───────────────────────────────────── */
+  .container { max-width: 1700px; margin: 0 auto; padding: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 330px 1fr 350px; gap: 12px; }
+  @media (max-width: 1300px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  .left-panel { max-height: calc(100vh - 100px); overflow-y: auto; }
+  .left-panel::-webkit-scrollbar { width: 5px; }
+  .left-panel::-webkit-scrollbar-thumb { background: var(--md-green); border-radius: 3px; }
+
+  /* ── CARDS ─────────────────────────────────────── */
+  .card {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .card-head {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-head.gold { background: var(--gold); color: var(--dk-green); }
+  .card-head.blue { background: var(--blue); color: var(--white); }
+  .card-head.red  { background: var(--red); color: var(--white); }
+  .card-head.orange { background: var(--orange); color: var(--white); }
+  .card-head.purple { background: var(--purple); color: var(--white); }
+  .card-head .toggle { font-size: 10px; opacity: 0.7; }
+  .card-body { padding: 10px 14px; }
+  .card-body.collapsed { display: none; }
+
+  /* ── INPUTS ────────────────────────────────────── */
+  .input-group { margin-bottom: 10px; }
+  .input-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dk-grey);
+    margin-bottom: 3px;
+  }
+  .input-group label .val {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dk-green);
+  }
+  .input-group input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--md-green), var(--dk-green));
+    outline: none;
+  }
+  .input-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--dk-green);
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+
+  /* ── FEE TABLE (compact inputs) ────────────────── */
+  .fee-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .fee-table th {
+    background: var(--lt-green);
+    color: var(--dk-green);
+    padding: 4px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .fee-table th:first-child { text-align: left; }
+  .fee-table td {
+    padding: 3px 4px;
+    border-bottom: 1px solid #EEE;
+    text-align: center;
+  }
+  .fee-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .fee-table input[type="number"] {
+    width: 68px;
+    padding: 3px 4px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: inherit;
+    text-align: right;
+  }
+  .fee-table input[type="number"]:focus {
+    outline: none;
+    border-color: var(--dk-green);
+    box-shadow: 0 0 0 2px rgba(1,65,28,0.15);
+  }
+  .fee-table tr.seg-head td {
+    background: var(--lt-gold);
+    font-weight: 700;
+    color: var(--dk-green);
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+
+  /* ── TABS ──────────────────────────────────────── */
+  .tab-bar {
+    display: flex;
+    background: var(--dk-green);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 8px 6px;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    border: none;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .tab-btn:hover { color: var(--white); background: rgba(255,255,255,0.1); }
+  .tab-btn.active { color: var(--gold); background: rgba(255,255,255,0.15); border-bottom: 2px solid var(--gold); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── PROJECTION TABLES ─────────────────────────── */
+  .proj-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .proj-table th {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 5px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .proj-table th:first-child { text-align: left; min-width: 120px; }
+  .proj-table td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #E0E0E0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .proj-table td:first-child { text-align: left; font-weight: 500; }
+  .proj-table tr:nth-child(even) { background: #FAFAFA; }
+  .proj-table tr.seg-head td {
+    background: var(--lt-gold);
+    font-weight: 700;
+    color: var(--dk-green);
+    font-size: 10px;
+    border-bottom: 2px solid var(--gold);
+    text-align: left;
+  }
+  .proj-table tr.total-row td {
+    background: var(--dk-green);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .proj-table tr.subtotal-row td {
+    background: var(--lt-green);
+    font-weight: 700;
+    color: var(--dk-green);
+  }
+  .proj-table tr.discount-row td {
+    background: #FFEBEE;
+    color: var(--red);
+    font-weight: 600;
+  }
+  .proj-table tr.revenue-row td {
+    background: var(--lt-green);
+    font-weight: 700;
+    color: var(--dk-green);
+    font-size: 11px;
+  }
+  .proj-table tr.cost-row td {
+    background: #FFEBEE;
+    font-weight: 700;
+    color: var(--red);
+    font-size: 11px;
+  }
+  .proj-table tr.net-row td {
+    background: var(--dk-green);
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .proj-table .new-hire { color: var(--red); font-weight: 700; }
+  .proj-table .growth { color: var(--md-green); font-weight: 600; }
+  .proj-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+
+  /* ── KPIs ──────────────────────────────────────── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .kpi {
+    background: var(--lt-green);
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+  }
+  .kpi .value { font-size: 17px; font-weight: 700; color: var(--dk-green); line-height: 1.2; }
+  .kpi .label { font-size: 8px; color: var(--md-grey); margin-top: 2px; }
+  .kpi-gold { background: var(--lt-gold); }
+  .kpi-gold .value { color: var(--gold); }
+  .kpi-red { background: #FFEBEE; }
+  .kpi-red .value { color: var(--red); }
+  .kpi-blue { background: #E3F2FD; }
+  .kpi-blue .value { color: var(--blue); }
+
+  /* ── RIGHT PANEL ───────────────────────────────── */
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 11px;
+    border-bottom: 1px solid #EEE;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .s-label { color: var(--dk-grey); }
+  .summary-row .s-val { font-weight: 700; color: var(--dk-green); }
+  .summary-row.grand {
+    background: var(--dk-green);
+    color: var(--white);
+    padding: 8px 10px;
+    margin: 6px -14px -10px;
+    border-radius: 0 0 8px 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .summary-row.grand .s-val { color: var(--gold); }
+  .summary-row.deficit .s-val { color: var(--red); }
+  .summary-row.surplus .s-val { color: var(--md-green); }
+
+  .hire-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 10px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .hire-item .seg { font-weight: 600; }
+  .hire-item .count { font-weight: 700; color: var(--red); }
+  .hire-item .count.zero { color: var(--md-grey); }
+
+  /* ── MINI BAR CHART ────────────────────────────── */
+  .mini-chart { margin: 8px 0; }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 9px;
+  }
+  .bar-row .bar-label { width: 26px; font-weight: 700; color: var(--dk-grey); text-align: center; }
+  .bar-wrap { flex: 1; height: 16px; background: #F0F0F0; border-radius: 3px; overflow: hidden; display: flex; }
+  .bar-rev { background: var(--md-green); height: 100%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-size: 8px; font-weight: 700; overflow: hidden; }
+  .bar-cost { background: var(--red); height: 100%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-size: 8px; font-weight: 700; overflow: hidden; }
+
+  /* ── YEAR SELECTOR ─────────────────────────────── */
+  .year-selector {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .year-btn {
+    flex: 1;
+    padding: 5px 2px;
+    background: var(--lt-grey);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    font-family: inherit;
+  }
+  .year-btn:hover { background: var(--lt-green); }
+  .year-btn.active { background: var(--dk-green); color: var(--white); border-color: var(--dk-green); }
+
+  /* ── FOOTER ────────────────────────────────────── */
+  .footer {
+    background: var(--dk-green);
+    color: var(--gold);
+    text-align: center;
+    padding: 10px;
+    font-size: 9px;
+    margin-top: 16px;
+  }
+
+  .disclaimer { font-size: 8px; color: var(--md-grey); font-style: italic; margin-top: 8px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>PISES — REVENUE &amp; COST PROJECTION SIMULATOR</h1>
+    <div class="sub">Pakistan International School (English Section), Riyadh | New Campus Financial Model</div>
+  </div>
+  <div class="badge">LIVE PROJECTIONS</div>
+</div>
+
+<div class="container">
+  <div class="grid-3">
+
+    <!-- ═══════════ LEFT PANEL: INPUTS ═══════════ -->
+    <div class="left-panel">
+
+      <!-- Growth Settings -->
+      <div class="card">
+        <div class="card-head" onclick="toggleCard(this)">GROWTH TRAJECTORY <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Target Enrollment <span class="val" id="lbl-target">7,000</span></label>
+            <input type="range" id="sl-target" min="5000" max="10000" step="100" value="7000">
+          </div>
+          <div class="input-group">
+            <label>Growth Period (Years) <span class="val" id="lbl-growth-yrs">5</span></label>
+            <input type="range" id="sl-growth-yrs" min="1" max="8" step="1" value="5">
+          </div>
+          <div class="input-group">
+            <label>Max Class Size <span class="val" id="lbl-max-cls">25</span></label>
+            <input type="range" id="sl-max-cls" min="20" max="35" step="1" value="25">
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label>EY Class Size <span class="val" id="lbl-ey-cls">22</span></label>
+            <input type="range" id="sl-ey-cls" min="15" max="25" step="1" value="22">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tuition Fees -->
+      <div class="card">
+        <div class="card-head gold" onclick="toggleCard(this)">TUITION FEES — PER CLASS (SAR / YEAR) <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <table class="fee-table" id="tuition-table">
+            <thead><tr><th>Grade</th><th>Students</th><th>Fee (SAR)</th></tr></thead>
+            <tbody id="tuition-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Other Revenue -->
+      <div class="card">
+        <div class="card-head blue" onclick="toggleCard(this)">OTHER FEES PER STUDENT (SAR / YEAR) <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <table class="fee-table" id="other-fees-table">
+            <thead><tr><th>Fee Type</th><th>EY</th><th>PRI</th><th>INT</th><th>SEC</th></tr></thead>
+            <tbody id="other-fees-tbody"></tbody>
+          </table>
+          <div style="margin-top:8px;">
+            <div class="input-group">
+              <label>Transport Utilization <span class="val" id="lbl-transport-util">45%</span></label>
+              <input type="range" id="sl-transport-util" min="0" max="100" step="5" value="45">
+            </div>
+            <div class="input-group" style="margin-bottom:0;">
+              <label>Sports/Activities Opt-in <span class="val" id="lbl-sports-optin">60%</span></label>
+              <input type="range" id="sl-sports-optin" min="0" max="100" step="5" value="60">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Building Discount -->
+      <div class="card">
+        <div class="card-head orange" onclick="toggleCard(this)">NEW BUILDING DISCOUNT <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Discount on Tuition <span class="val" id="lbl-discount">10%</span></label>
+            <input type="range" id="sl-discount" min="0" max="30" step="1" value="10">
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label>Discount Duration (Years) <span class="val" id="lbl-disc-yrs">3</span></label>
+            <input type="range" id="sl-disc-yrs" min="0" max="6" step="1" value="3">
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Costs -->
+      <div class="card">
+        <div class="card-head red" onclick="toggleCard(this)">STAFF COSTS (SAR / MONTH) <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Teacher Salary <span class="val" id="lbl-teacher-sal">5,500</span></label>
+            <input type="range" id="sl-teacher-sal" min="3000" max="10000" step="250" value="5500">
+          </div>
+          <div class="input-group">
+            <label>Senior Teacher / HOD <span class="val" id="lbl-senior-sal">8,000</span></label>
+            <input type="range" id="sl-senior-sal" min="5000" max="15000" step="500" value="8000">
+          </div>
+          <div class="input-group">
+            <label>Admin Staff <span class="val" id="lbl-admin-sal">5,000</span></label>
+            <input type="range" id="sl-admin-sal" min="3000" max="10000" step="250" value="5000">
+          </div>
+          <div class="input-group">
+            <label>Support Staff <span class="val" id="lbl-support-sal">3,000</span></label>
+            <input type="range" id="sl-support-sal" min="2000" max="6000" step="250" value="3000">
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label>Benefits Multiplier <span class="val" id="lbl-benefits">1.25×</span></label>
+            <input type="range" id="sl-benefits" min="1.0" max="1.5" step="0.05" value="1.25">
+          </div>
+        </div>
+      </div>
+
+      <!-- Operational Costs -->
+      <div class="card">
+        <div class="card-head purple" onclick="toggleCard(this)">OPERATIONAL COSTS (SAR / STUDENT / YEAR) <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <div class="input-group">
+            <label>Utilities &amp; Energy <span class="val" id="lbl-utilities">1,500</span></label>
+            <input type="range" id="sl-utilities" min="500" max="4000" step="100" value="1500">
+          </div>
+          <div class="input-group">
+            <label>Maintenance <span class="val" id="lbl-maintenance">800</span></label>
+            <input type="range" id="sl-maintenance" min="200" max="2000" step="100" value="800">
+          </div>
+          <div class="input-group">
+            <label>Materials &amp; Consumables <span class="val" id="lbl-materials">500</span></label>
+            <input type="range" id="sl-materials" min="100" max="1500" step="50" value="500">
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label>Other Overhead <span class="val" id="lbl-overhead">700</span></label>
+            <input type="range" id="sl-overhead" min="200" max="2000" step="50" value="700">
+          </div>
+        </div>
+      </div>
+
+      <!-- Fee Collection -->
+      <div class="card">
+        <div class="card-head" onclick="toggleCard(this)">COLLECTION &amp; ASSUMPTIONS <span class="toggle">▼</span></div>
+        <div class="card-body">
+          <div class="input-group" style="margin-bottom:0;">
+            <label>Fee Collection Rate <span class="val" id="lbl-collection">92%</span></label>
+            <input type="range" id="sl-collection" min="70" max="100" step="1" value="92">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ CENTER PANEL: PROJECTIONS ═══════════ -->
+    <div>
+      <!-- KPI row -->
+      <div class="kpi-row" id="top-kpis">
+        <div class="kpi kpi-gold"><div class="value" id="kpi-revenue">—</div><div class="label">Annual Revenue (Y5)</div></div>
+        <div class="kpi kpi-red"><div class="value" id="kpi-costs">—</div><div class="label">Annual Costs (Y5)</div></div>
+        <div class="kpi kpi-blue"><div class="value" id="kpi-net">—</div><div class="label">Net Surplus (Y5)</div></div>
+        <div class="kpi"><div class="value" id="kpi-students">—</div><div class="label">Students (Y5)</div></div>
+        <div class="kpi"><div class="value" id="kpi-staff">—</div><div class="label">Total Staff (Y5)</div></div>
+        <div class="kpi"><div class="value" id="kpi-per-student">—</div><div class="label">Rev/Student (Y5)</div></div>
+      </div>
+
+      <!-- Revenue vs Cost mini chart -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-head gold">REVENUE vs COST — 7 YEAR TRAJECTORY</div>
+        <div class="card-body">
+          <div style="display:flex; gap:12px; font-size:9px; margin-bottom:6px;">
+            <span><span style="display:inline-block;width:10px;height:10px;background:var(--md-green);border-radius:2px;"></span> Revenue</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;"></span> Costs</span>
+            <span style="margin-left:auto;font-weight:700;color:var(--dk-green);" id="chart-legend"></span>
+          </div>
+          <div class="mini-chart" id="mini-chart"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab(0)">ENROLLMENT &amp; SECTIONS</button>
+          <button class="tab-btn" onclick="switchTab(1)">REVENUE PROJECTION</button>
+          <button class="tab-btn" onclick="switchTab(2)">STAFFING &amp; COSTS</button>
+          <button class="tab-btn" onclick="switchTab(3)">PROFIT &amp; LOSS</button>
+        </div>
+        <div class="card" style="border-radius:0 0 8px 8px;">
+          <div class="card-body" style="padding:0;">
+
+            <!-- Tab 0: Enrollment -->
+            <div class="tab-content active" id="tab-0">
+              <div class="proj-wrap"><table class="proj-table" id="tbl-enrollment"></table></div>
+            </div>
+
+            <!-- Tab 1: Revenue -->
+            <div class="tab-content" id="tab-1">
+              <div class="proj-wrap"><table class="proj-table" id="tbl-revenue"></table></div>
+            </div>
+
+            <!-- Tab 2: Staffing -->
+            <div class="tab-content" id="tab-2">
+              <div class="proj-wrap"><table class="proj-table" id="tbl-staffing"></table></div>
+            </div>
+
+            <!-- Tab 3: P&L -->
+            <div class="tab-content" id="tab-3">
+              <div class="proj-wrap"><table class="proj-table" id="tbl-pnl"></table></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ RIGHT PANEL: SUMMARY ═══════════ -->
+    <div>
+      <!-- Year Selector -->
+      <div class="card">
+        <div class="card-head">SELECT YEAR FOR DETAIL</div>
+        <div class="card-body">
+          <div class="year-selector" id="year-selector"></div>
+        </div>
+      </div>
+
+      <!-- Revenue Breakdown -->
+      <div class="card">
+        <div class="card-head gold">REVENUE BREAKDOWN</div>
+        <div class="card-body" id="rev-breakdown"></div>
+      </div>
+
+      <!-- Cost Breakdown -->
+      <div class="card">
+        <div class="card-head red">COST BREAKDOWN</div>
+        <div class="card-body" id="cost-breakdown"></div>
+      </div>
+
+      <!-- Staffing Detail -->
+      <div class="card">
+        <div class="card-head blue">STAFFING REQUIREMENTS</div>
+        <div class="card-body" id="staff-detail"></div>
+      </div>
+
+      <!-- Where New Hiring Happens -->
+      <div class="card">
+        <div class="card-head orange">WHERE NEW HIRING HAPPENS</div>
+        <div class="card-body" id="hiring-map"></div>
+      </div>
+
+      <!-- Per-Student Economics -->
+      <div class="card">
+        <div class="card-head">PER-STUDENT ECONOMICS</div>
+        <div class="card-body" id="per-student"></div>
+      </div>
+
+      <div class="disclaimer">
+        All figures are planning-level estimates in SAR. Tuition fees are gross before discount.
+        Fee collection rate applied to all revenue. Staff costs include benefits multiplier.
+        Growth assumes proportional distribution across grades based on current enrollment ratios.
+        1 USD = 3.75 SAR.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  CONFIDENTIAL | Pakistan International School (English Section), Riyadh | Revenue Projection Simulator v1.0 | 2025
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PISES REVENUE & COST PROJECTION SIMULATOR — ENGINE
+// ═══════════════════════════════════════════════════════════
+
+const SAR_TO_USD = 1 / 3.75;
+const NUM_YEARS = 7; // Y0 (current) through Y6
+
+// ── Grade definitions ──────────────────────────────────────
+const GRADES = [
+  { id: 'nursery',   name: 'Nursery',   segment: 'EY',  current: 122, defaultFee: 6000 },
+  { id: 'reception', name: 'Reception', segment: 'EY',  current: 296, defaultFee: 7000 },
+  { id: 'kg',        name: 'KG',        segment: 'EY',  current: 383, defaultFee: 8000 },
+  { id: 'g1',        name: 'Grade 1',   segment: 'PRI', current: 394, defaultFee: 9500 },
+  { id: 'g2',        name: 'Grade 2',   segment: 'PRI', current: 417, defaultFee: 10000 },
+  { id: 'g3',        name: 'Grade 3',   segment: 'PRI', current: 398, defaultFee: 10000 },
+  { id: 'g4',        name: 'Grade 4',   segment: 'PRI', current: 430, defaultFee: 10500 },
+  { id: 'g5',        name: 'Grade 5',   segment: 'INT', current: 422, defaultFee: 11000 },
+  { id: 'g6',        name: 'Grade 6',   segment: 'INT', current: 468, defaultFee: 11500 },
+  { id: 'g7',        name: 'Grade 7',   segment: 'INT', current: 429, defaultFee: 12000 },
+  { id: 'g8',        name: 'Grade 8',   segment: 'INT', current: 381, defaultFee: 12500 },
+  { id: 'g9',        name: 'Grade 9',   segment: 'INT', current: 351, defaultFee: 13000 },
+  { id: 'g10',       name: 'Grade 10',  segment: 'SEC', current: 330, defaultFee: 14000 },
+  { id: 'g11',       name: 'Grade 11',  segment: 'SEC', current: 253, defaultFee: 15000 },
+  { id: 'g12',       name: 'Grade 12',  segment: 'SEC', current: 189, defaultFee: 16000 },
+];
+
+const CURRENT_TOTAL = GRADES.reduce((s, g) => s + g.current, 0); // 5,263
+
+const SEGMENTS = ['EY', 'PRI', 'INT', 'SEC'];
+const SEG_NAMES = { EY: 'Early Years', PRI: 'Primary', INT: 'Intermediate', SEC: 'Secondary' };
+const SEG_GRADES = {};
+SEGMENTS.forEach(s => SEG_GRADES[s] = GRADES.filter(g => g.segment === s));
+
+// Teacher ratio per section (how many teachers needed per classroom section)
+const TEACHER_RATIO = { EY: 1.0, PRI: 1.15, INT: 1.35, SEC: 1.45 };
+
+// Other fees defaults per segment
+const OTHER_FEE_TYPES = [
+  { id: 'books',        name: 'Books & Materials', defaults: { EY: 800,  PRI: 1500, INT: 2000, SEC: 2500 } },
+  { id: 'registration', name: 'Registration (New)', defaults: { EY: 500,  PRI: 500,  INT: 750,  SEC: 1000 } },
+  { id: 'transport',    name: 'Transport',          defaults: { EY: 3000, PRI: 3000, INT: 3000, SEC: 3000 } },
+  { id: 'uniform',      name: 'Uniform',            defaults: { EY: 600,  PRI: 600,  INT: 700,  SEC: 700 } },
+  { id: 'sports',       name: 'Sports & Activities', defaults: { EY: 300,  PRI: 500,  INT: 600,  SEC: 600 } },
+  { id: 'cafeteria',    name: 'Cafeteria / Meals',  defaults: { EY: 0,    PRI: 400,  INT: 500,  SEC: 500 } },
+];
+
+// ── DOM shortcuts ──────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+function fmtM(n) { return (n / 1e6).toFixed(1) + 'M'; }
+function fmtK(n) { return (n / 1e3).toFixed(0) + 'K'; }
+function fmtSAR(n) { return 'SAR ' + fmt(n); }
+
+let selectedYear = 5;
+
+// ── Build tuition fee inputs ────────────────────────────────
+function buildTuitionTable() {
+  let html = '';
+  let lastSeg = '';
+  for (const g of GRADES) {
+    if (g.segment !== lastSeg) {
+      html += `<tr class="seg-head"><td colspan="3">${SEG_NAMES[g.segment]}</td></tr>`;
+      lastSeg = g.segment;
+    }
+    html += `<tr>
+      <td>${g.name}</td>
+      <td style="text-align:center;color:var(--md-grey);font-size:9px;">${g.current}</td>
+      <td><input type="number" id="fee-${g.id}" value="${g.defaultFee}" min="0" step="500"></td>
+    </tr>`;
+  }
+  $('tuition-tbody').innerHTML = html;
+}
+
+// ── Build other fees inputs ─────────────────────────────────
+function buildOtherFeesTable() {
+  let html = '';
+  for (const ft of OTHER_FEE_TYPES) {
+    html += `<tr>
+      <td>${ft.name}</td>
+      ${SEGMENTS.map(s => `<td><input type="number" id="ofee-${ft.id}-${s}" value="${ft.defaults[s]}" min="0" step="100"></td>`).join('')}
+    </tr>`;
+  }
+  $('other-fees-tbody').innerHTML = html;
+}
+
+// ── Build year selector ─────────────────────────────────────
+function buildYearSelector() {
+  let html = '';
+  for (let y = 0; y < NUM_YEARS; y++) {
+    html += `<button class="year-btn ${y === selectedYear ? 'active' : ''}" onclick="selectYear(${y})">Y${y}</button>`;
+  }
+  $('year-selector').innerHTML = html;
+}
+
+function selectYear(y) {
+  selectedYear = y;
+  document.querySelectorAll('.year-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === y);
+  });
+  recalc();
+}
+
+// ── Collapsible cards ───────────────────────────────────────
+function toggleCard(headEl) {
+  const body = headEl.nextElementSibling;
+  body.classList.toggle('collapsed');
+  const toggle = headEl.querySelector('.toggle');
+  if (toggle) toggle.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+// ── Tab switching ───────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-content').forEach((tc, i) => tc.classList.toggle('active', i === idx));
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALCULATION ENGINE
+// ═══════════════════════════════════════════════════════════
+
+function readInputs() {
+  const cfg = {};
+  cfg.targetTotal = +$('sl-target').value;
+  cfg.growthYears = +$('sl-growth-yrs').value;
+  cfg.maxCls = +$('sl-max-cls').value;
+  cfg.eyCls = +$('sl-ey-cls').value;
+  cfg.discount = +$('sl-discount').value / 100;
+  cfg.discountYears = +$('sl-disc-yrs').value;
+  cfg.transportUtil = +$('sl-transport-util').value / 100;
+  cfg.sportsOptin = +$('sl-sports-optin').value / 100;
+  cfg.teacherSal = +$('sl-teacher-sal').value;
+  cfg.seniorSal = +$('sl-senior-sal').value;
+  cfg.adminSal = +$('sl-admin-sal').value;
+  cfg.supportSal = +$('sl-support-sal').value;
+  cfg.benefits = +$('sl-benefits').value;
+  cfg.utilities = +$('sl-utilities').value;
+  cfg.maintenance = +$('sl-maintenance').value;
+  cfg.materials = +$('sl-materials').value;
+  cfg.overhead = +$('sl-overhead').value;
+  cfg.collection = +$('sl-collection').value / 100;
+
+  // Per-grade tuition fees
+  cfg.tuition = {};
+  for (const g of GRADES) {
+    cfg.tuition[g.id] = +(document.getElementById('fee-' + g.id)?.value || g.defaultFee);
+  }
+
+  // Per-segment other fees
+  cfg.otherFees = {};
+  for (const ft of OTHER_FEE_TYPES) {
+    cfg.otherFees[ft.id] = {};
+    for (const s of SEGMENTS) {
+      cfg.otherFees[ft.id][s] = +(document.getElementById('ofee-' + ft.id + '-' + s)?.value || ft.defaults[s]);
+    }
+  }
+  return cfg;
+}
+
+function calcEnrollment(cfg) {
+  const years = [];
+  for (let y = 0; y < NUM_YEARS; y++) {
+    let total;
+    if (y === 0) total = CURRENT_TOTAL;
+    else if (y >= cfg.growthYears) total = cfg.targetTotal;
+    else total = CURRENT_TOTAL + (cfg.targetTotal - CURRENT_TOTAL) * (y / cfg.growthYears);
+
+    const enrollment = {};
+    let assigned = 0;
+    for (let i = 0; i < GRADES.length - 1; i++) {
+      const g = GRADES[i];
+      enrollment[g.id] = Math.round(total * g.current / CURRENT_TOTAL);
+      assigned += enrollment[g.id];
+    }
+    enrollment[GRADES[GRADES.length - 1].id] = Math.round(total) - assigned;
+
+    // Segment totals
+    enrollment._total = Math.round(total);
+    for (const s of SEGMENTS) {
+      enrollment['_' + s] = SEG_GRADES[s].reduce((sum, g) => sum + enrollment[g.id], 0);
+    }
+    years.push(enrollment);
+  }
+  return years;
+}
+
+function calcSections(enrollment, cfg) {
+  const years = [];
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const sections = {};
+    let total = 0;
+    for (const g of GRADES) {
+      const maxSize = g.segment === 'EY' ? cfg.eyCls : cfg.maxCls;
+      sections[g.id] = Math.ceil(enrollment[y][g.id] / maxSize);
+      total += sections[g.id];
+    }
+    sections._total = total;
+    for (const s of SEGMENTS) {
+      sections['_' + s] = SEG_GRADES[s].reduce((sum, g) => sum + sections[g.id], 0);
+    }
+    years.push(sections);
+  }
+  return years;
+}
+
+function calcStaff(sections, enrollment, cfg) {
+  const years = [];
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const staff = {};
+
+    // Teachers per segment
+    let totalTeachers = 0;
+    for (const s of SEGMENTS) {
+      const t = Math.ceil(sections[y]['_' + s] * TEACHER_RATIO[s]);
+      staff['teachers_' + s] = t;
+      totalTeachers += t;
+    }
+    staff.teachers = totalTeachers;
+
+    // Senior teachers / HODs: 1 per 10 sections
+    staff.seniors = Math.ceil(sections[y]._total / 10);
+
+    // Admin: 1 per 100 students
+    staff.admin = Math.ceil(enrollment[y]._total / 100);
+
+    // Support: 1 per 150 students
+    staff.support = Math.ceil(enrollment[y]._total / 150);
+
+    staff.total = staff.teachers + staff.seniors + staff.admin + staff.support;
+
+    // Delta from previous year
+    if (y > 0) {
+      staff.newTeachers = Math.max(0, staff.teachers - years[y - 1].teachers);
+      staff.newSeniors = Math.max(0, staff.seniors - years[y - 1].seniors);
+      staff.newAdmin = Math.max(0, staff.admin - years[y - 1].admin);
+      staff.newSupport = Math.max(0, staff.support - years[y - 1].support);
+      staff.newTotal = staff.newTeachers + staff.newSeniors + staff.newAdmin + staff.newSupport;
+
+      // New teachers by segment
+      for (const s of SEGMENTS) {
+        staff['newTeachers_' + s] = Math.max(0, staff['teachers_' + s] - years[y - 1]['teachers_' + s]);
+      }
+
+      // Section deltas by grade
+      for (const g of GRADES) {
+        staff['deltaSec_' + g.id] = Math.max(0, sections[y][g.id] - sections[y - 1][g.id]);
+      }
+    } else {
+      staff.newTeachers = 0; staff.newSeniors = 0; staff.newAdmin = 0; staff.newSupport = 0; staff.newTotal = 0;
+      for (const s of SEGMENTS) staff['newTeachers_' + s] = 0;
+      for (const g of GRADES) staff['deltaSec_' + g.id] = 0;
+    }
+    years.push(staff);
+  }
+  return years;
+}
+
+function calcRevenue(enrollment, cfg) {
+  const years = [];
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const rev = {};
+
+    // Discount applies from Y1 through Y(discountYears)
+    const discountRate = (y >= 1 && y <= cfg.discountYears) ? cfg.discount : 0;
+
+    // Tuition revenue (per grade)
+    let grossTuition = 0;
+    for (const g of GRADES) {
+      grossTuition += enrollment[y][g.id] * cfg.tuition[g.id];
+    }
+    rev.grossTuition = grossTuition;
+    rev.discountAmount = grossTuition * discountRate;
+    rev.netTuition = grossTuition - rev.discountAmount;
+    rev.discountRate = discountRate;
+
+    // Tuition by segment (for detail)
+    for (const s of SEGMENTS) {
+      rev['tuition_' + s] = SEG_GRADES[s].reduce((sum, g) => sum + enrollment[y][g.id] * cfg.tuition[g.id], 0);
+    }
+
+    // Other fees
+    rev.books = 0; rev.registration = 0; rev.transport = 0;
+    rev.uniform = 0; rev.sports = 0; rev.cafeteria = 0;
+
+    for (const g of GRADES) {
+      const s = g.segment;
+      const n = enrollment[y][g.id];
+      rev.books += n * cfg.otherFees.books[s];
+      rev.uniform += n * cfg.otherFees.uniform[s];
+      rev.transport += n * cfg.otherFees.transport[s] * cfg.transportUtil;
+      rev.sports += n * cfg.otherFees.sports[s] * cfg.sportsOptin;
+      rev.cafeteria += n * cfg.otherFees.cafeteria[s];
+
+      // Registration: only for new students (growth from previous year)
+      const prevN = y > 0 ? (enrollment[y - 1] ? enrollment[y - 1][g.id] : 0) : 0;
+      const newStudents = y === 0 ? 0 : Math.max(0, n - prevN);
+      rev.registration += newStudents * cfg.otherFees.registration[s];
+    }
+
+    rev.otherTotal = rev.books + rev.registration + rev.transport + rev.uniform + rev.sports + rev.cafeteria;
+    rev.grossRevenue = rev.grossTuition + rev.otherTotal;
+    rev.totalRevenue = rev.netTuition + rev.otherTotal;
+
+    // Apply collection rate
+    rev.collectedRevenue = rev.totalRevenue * cfg.collection;
+
+    years.push(rev);
+  }
+  return years;
+}
+
+function calcCosts(staff, enrollment, cfg) {
+  const years = [];
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const cost = {};
+    const n = enrollment[y]._total;
+    const b = cfg.benefits;
+
+    // Staff costs (annual = monthly × 12 × benefits multiplier)
+    cost.teacherCost = staff[y].teachers * cfg.teacherSal * 12 * b;
+    cost.seniorCost = staff[y].seniors * cfg.seniorSal * 12 * b;
+    cost.adminCost = staff[y].admin * cfg.adminSal * 12 * b;
+    cost.supportCost = staff[y].support * cfg.supportSal * 12 * b;
+    cost.totalStaffCost = cost.teacherCost + cost.seniorCost + cost.adminCost + cost.supportCost;
+
+    // Operational costs
+    cost.utilities = n * cfg.utilities;
+    cost.maintenance = n * cfg.maintenance;
+    cost.materials = n * cfg.materials;
+    cost.overhead = n * cfg.overhead;
+    cost.totalOpsCost = cost.utilities + cost.maintenance + cost.materials + cost.overhead;
+
+    cost.totalCost = cost.totalStaffCost + cost.totalOpsCost;
+
+    years.push(cost);
+  }
+  return years;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════════════
+
+function yearHeaders() {
+  let h = '<th>Item</th>';
+  for (let y = 0; y < NUM_YEARS; y++) {
+    h += `<th>Y${y}${y === 0 ? ' (Now)' : ''}</th>`;
+  }
+  return `<thead><tr>${h}</tr></thead>`;
+}
+
+function yearCells(values, format = 'num') {
+  return values.map(v => {
+    if (format === 'num') return `<td>${fmt(v)}</td>`;
+    if (format === 'sar') return `<td>${fmtSAR(v)}</td>`;
+    if (format === 'sarM') return `<td>SAR ${fmtM(v)}</td>`;
+    if (format === 'pct') return `<td>${(v * 100).toFixed(0)}%</td>`;
+    return `<td>${v}</td>`;
+  }).join('');
+}
+
+function renderEnrollmentTab(enrollment, sections, staff) {
+  let html = yearHeaders() + '<tbody>';
+
+  for (const s of SEGMENTS) {
+    html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">${SEG_NAMES[s]}</td></tr>`;
+    for (const g of SEG_GRADES[s]) {
+      html += '<tr>';
+      html += `<td>${g.name}</td>`;
+      for (let y = 0; y < NUM_YEARS; y++) {
+        const n = enrollment[y][g.id];
+        const sec = sections[y][g.id];
+        const delta = y > 0 ? staff[y]['deltaSec_' + g.id] : 0;
+        const deltaStr = delta > 0 ? ` <span class="new-hire">(+${delta}s)</span>` : '';
+        html += `<td>${fmt(n)} <span style="color:var(--md-grey);font-size:8px;">[${sec}]${deltaStr}</span></td>`;
+      }
+      html += '</tr>';
+    }
+    // Segment subtotal
+    html += `<tr class="subtotal-row"><td>${SEG_NAMES[s]} Total</td>`;
+    for (let y = 0; y < NUM_YEARS; y++) {
+      html += `<td>${fmt(enrollment[y]['_' + s])} <span style="font-size:8px;">[${sections[y]['_' + s]}]</span></td>`;
+    }
+    html += '</tr>';
+  }
+
+  // Grand total
+  html += `<tr class="total-row"><td>TOTAL ENROLLMENT</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    html += `<td>${fmt(enrollment[y]._total)} <span style="color:var(--gold);font-size:8px;">[${sections[y]._total} sec]</span></td>`;
+  }
+  html += '</tr>';
+
+  // New sections row
+  html += `<tr style="background:#FFF3E0;"><td style="font-weight:700;color:var(--orange);">New Sections Added</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const delta = y > 0 ? sections[y]._total - sections[y - 1]._total : 0;
+    html += `<td style="font-weight:700;color:${delta > 0 ? 'var(--orange)' : 'var(--md-grey)'};">${delta > 0 ? '+' + delta : '—'}</td>`;
+  }
+  html += '</tr>';
+
+  html += '</tbody>';
+  $('tbl-enrollment').innerHTML = html;
+}
+
+function renderRevenueTab(revenue, enrollment) {
+  let html = yearHeaders() + '<tbody>';
+
+  // Tuition by segment
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">TUITION REVENUE</td></tr>`;
+  for (const s of SEGMENTS) {
+    html += `<tr><td>${SEG_NAMES[s]} Tuition</td>`;
+    html += yearCells(revenue.map(r => r['tuition_' + s])) + '</tr>';
+  }
+  html += `<tr class="subtotal-row"><td>Gross Tuition</td>${yearCells(revenue.map(r => r.grossTuition))}</tr>`;
+  html += `<tr class="discount-row"><td>New Building Discount</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const r = revenue[y];
+    html += `<td>${r.discountAmount > 0 ? '(' + fmt(r.discountAmount) + ') [' + (r.discountRate * 100).toFixed(0) + '%]' : '—'}</td>`;
+  }
+  html += '</tr>';
+  html += `<tr class="subtotal-row"><td>Net Tuition</td>${yearCells(revenue.map(r => r.netTuition))}</tr>`;
+
+  // Other revenue
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">OTHER REVENUE</td></tr>`;
+  html += `<tr><td>Books &amp; Materials</td>${yearCells(revenue.map(r => r.books))}</tr>`;
+  html += `<tr><td>Registration (New Students)</td>${yearCells(revenue.map(r => r.registration))}</tr>`;
+  html += `<tr><td>Transport</td>${yearCells(revenue.map(r => r.transport))}</tr>`;
+  html += `<tr><td>Uniform</td>${yearCells(revenue.map(r => r.uniform))}</tr>`;
+  html += `<tr><td>Sports &amp; Activities</td>${yearCells(revenue.map(r => r.sports))}</tr>`;
+  html += `<tr><td>Cafeteria / Meals</td>${yearCells(revenue.map(r => r.cafeteria))}</tr>`;
+  html += `<tr class="subtotal-row"><td>Other Revenue Total</td>${yearCells(revenue.map(r => r.otherTotal))}</tr>`;
+
+  // Totals
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">TOTALS</td></tr>`;
+  html += `<tr class="revenue-row"><td>Total Revenue (Gross)</td>${yearCells(revenue.map(r => r.grossRevenue))}</tr>`;
+  html += `<tr class="revenue-row"><td>Total Revenue (After Discount)</td>${yearCells(revenue.map(r => r.totalRevenue))}</tr>`;
+  html += `<tr class="total-row"><td>Collected Revenue (@ ${(revenue[0].collectedRevenue / Math.max(1, revenue[0].totalRevenue) * 100).toFixed(0)}%)</td>${yearCells(revenue.map(r => r.collectedRevenue))}</tr>`;
+
+  html += '</tbody>';
+  $('tbl-revenue').innerHTML = html;
+}
+
+function renderStaffingTab(staff, sections, costs, enrollment) {
+  let html = yearHeaders() + '<tbody>';
+
+  // Sections
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">SECTIONS BY SEGMENT</td></tr>`;
+  for (const s of SEGMENTS) {
+    html += `<tr><td>${SEG_NAMES[s]} Sections</td>`;
+    for (let y = 0; y < NUM_YEARS; y++) {
+      const v = sections[y]['_' + s];
+      const delta = y > 0 ? v - sections[y - 1]['_' + s] : 0;
+      html += `<td>${v}${delta > 0 ? ' <span class="new-hire">(+' + delta + ')</span>' : ''}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += `<tr class="subtotal-row"><td>Total Sections</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    html += `<td>${sections[y]._total}</td>`;
+  }
+  html += '</tr>';
+
+  // Staff counts
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">STAFF REQUIREMENTS</td></tr>`;
+  for (const s of SEGMENTS) {
+    html += `<tr><td>${SEG_NAMES[s]} Teachers</td>`;
+    for (let y = 0; y < NUM_YEARS; y++) {
+      const v = staff[y]['teachers_' + s];
+      const nw = staff[y]['newTeachers_' + s];
+      html += `<td>${v}${nw > 0 ? ' <span class="new-hire">(+' + nw + ' new)</span>' : ''}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += `<tr class="subtotal-row"><td>Total Teachers</td>${yearCells(staff.map(s => s.teachers))}</tr>`;
+  html += `<tr><td>Senior Teachers / HODs</td>${yearCells(staff.map(s => s.seniors))}</tr>`;
+  html += `<tr><td>Admin Staff</td>${yearCells(staff.map(s => s.admin))}</tr>`;
+  html += `<tr><td>Support Staff</td>${yearCells(staff.map(s => s.support))}</tr>`;
+  html += `<tr class="total-row"><td>TOTAL STAFF</td>${yearCells(staff.map(s => s.total))}</tr>`;
+
+  // New hires
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">NEW HIRES PER YEAR</td></tr>`;
+  html += `<tr><td>New Teachers</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const v = staff[y].newTeachers;
+    html += `<td class="${v > 0 ? 'new-hire' : ''}">${v > 0 ? '+' + v : '—'}</td>`;
+  }
+  html += '</tr>';
+  html += `<tr><td>New Senior / HODs</td>` + staff.map(s => `<td>${s.newSeniors > 0 ? '+' + s.newSeniors : '—'}</td>`).join('') + '</tr>';
+  html += `<tr><td>New Admin</td>` + staff.map(s => `<td>${s.newAdmin > 0 ? '+' + s.newAdmin : '—'}</td>`).join('') + '</tr>';
+  html += `<tr><td>New Support</td>` + staff.map(s => `<td>${s.newSupport > 0 ? '+' + s.newSupport : '—'}</td>`).join('') + '</tr>';
+  html += `<tr class="subtotal-row"><td>Total New Hires</td>` + staff.map(s => `<td style="color:${s.newTotal > 0 ? 'var(--red)' : ''};font-weight:700;">${s.newTotal > 0 ? '+' + s.newTotal : '—'}</td>`).join('') + '</tr>';
+
+  // Cost breakdown
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">ANNUAL COSTS (SAR)</td></tr>`;
+  html += `<tr><td>Teacher Salaries</td>${yearCells(costs.map(c => c.teacherCost))}</tr>`;
+  html += `<tr><td>Senior / HOD Salaries</td>${yearCells(costs.map(c => c.seniorCost))}</tr>`;
+  html += `<tr><td>Admin Salaries</td>${yearCells(costs.map(c => c.adminCost))}</tr>`;
+  html += `<tr><td>Support Salaries</td>${yearCells(costs.map(c => c.supportCost))}</tr>`;
+  html += `<tr class="subtotal-row"><td>Total Staff Cost</td>${yearCells(costs.map(c => c.totalStaffCost))}</tr>`;
+  html += `<tr><td>Utilities &amp; Energy</td>${yearCells(costs.map(c => c.utilities))}</tr>`;
+  html += `<tr><td>Maintenance</td>${yearCells(costs.map(c => c.maintenance))}</tr>`;
+  html += `<tr><td>Materials &amp; Consumables</td>${yearCells(costs.map(c => c.materials))}</tr>`;
+  html += `<tr><td>Other Overhead</td>${yearCells(costs.map(c => c.overhead))}</tr>`;
+  html += `<tr class="subtotal-row"><td>Total Ops Cost</td>${yearCells(costs.map(c => c.totalOpsCost))}</tr>`;
+  html += `<tr class="total-row"><td>TOTAL ANNUAL COST</td>${yearCells(costs.map(c => c.totalCost))}</tr>`;
+
+  html += '</tbody>';
+  $('tbl-staffing').innerHTML = html;
+}
+
+function renderPnLTab(revenue, costs) {
+  let html = yearHeaders() + '<tbody>';
+
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">PROFIT & LOSS SUMMARY</td></tr>`;
+  html += `<tr class="revenue-row"><td>Gross Revenue</td>${yearCells(revenue.map(r => r.grossRevenue))}</tr>`;
+  html += `<tr class="discount-row"><td>Less: Building Discount</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const d = revenue[y].discountAmount;
+    html += `<td>${d > 0 ? '(' + fmt(d) + ')' : '—'}</td>`;
+  }
+  html += '</tr>';
+  html += `<tr class="revenue-row"><td>Net Revenue</td>${yearCells(revenue.map(r => r.totalRevenue))}</tr>`;
+  html += `<tr><td>Less: Collection Loss</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const loss = revenue[y].totalRevenue - revenue[y].collectedRevenue;
+    html += `<td style="color:var(--red);">${loss > 0 ? '(' + fmt(loss) + ')' : '—'}</td>`;
+  }
+  html += '</tr>';
+  html += `<tr class="subtotal-row"><td>Collected Revenue</td>${yearCells(revenue.map(r => r.collectedRevenue))}</tr>`;
+
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">COSTS</td></tr>`;
+  html += `<tr><td>Staff Costs</td>${yearCells(costs.map(c => c.totalStaffCost))}</tr>`;
+  html += `<tr><td>Operational Costs</td>${yearCells(costs.map(c => c.totalOpsCost))}</tr>`;
+  html += `<tr class="cost-row"><td>Total Costs</td>${yearCells(costs.map(c => c.totalCost))}</tr>`;
+
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">NET POSITION</td></tr>`;
+  const netValues = [];
+  let cumulative = 0;
+  const cumValues = [];
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const net = revenue[y].collectedRevenue - costs[y].totalCost;
+    netValues.push(net);
+    cumulative += net;
+    cumValues.push(cumulative);
+  }
+  html += `<tr class="net-row"><td>Annual Surplus / (Deficit)</td>`;
+  for (const n of netValues) {
+    html += `<td style="color:${n >= 0 ? 'var(--gold)' : '#FF8A80'};">${n >= 0 ? fmt(n) : '(' + fmt(Math.abs(n)) + ')'}</td>`;
+  }
+  html += '</tr>';
+  html += `<tr class="net-row"><td>Cumulative Surplus</td>`;
+  for (const c of cumValues) {
+    html += `<td style="color:${c >= 0 ? 'var(--gold)' : '#FF8A80'};">${c >= 0 ? fmt(c) : '(' + fmt(Math.abs(c)) + ')'}</td>`;
+  }
+  html += '</tr>';
+
+  // Staff-to-revenue ratio
+  html += `<tr class="seg-head"><td colspan="${NUM_YEARS + 1}">KEY RATIOS</td></tr>`;
+  html += `<tr><td>Staff Cost % of Revenue</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const pct = revenue[y].collectedRevenue > 0 ? (costs[y].totalStaffCost / revenue[y].collectedRevenue * 100) : 0;
+    html += `<td style="font-weight:700;color:${pct > 70 ? 'var(--red)' : pct > 55 ? 'var(--orange)' : 'var(--md-green)'};">${pct.toFixed(1)}%</td>`;
+  }
+  html += '</tr>';
+  html += `<tr><td>Revenue per Student</td>`;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const rps = revenue[y].collectedRevenue / Math.max(1, revenue[y].collectedRevenue > 0 ? (revenue[y]._total || CURRENT_TOTAL) : 1);
+  }
+  // Fix: use enrollment for per-student calc
+  html += '</tr>';
+
+  html += '</tbody>';
+  $('tbl-pnl').innerHTML = html;
+}
+
+function renderMiniChart(revenue, costs) {
+  let html = '';
+  const maxVal = Math.max(...revenue.map(r => r.collectedRevenue), ...costs.map(c => c.totalCost)) || 1;
+  for (let y = 0; y < NUM_YEARS; y++) {
+    const revPct = (revenue[y].collectedRevenue / maxVal * 100).toFixed(1);
+    const costPct = (costs[y].totalCost / maxVal * 100).toFixed(1);
+    const net = revenue[y].collectedRevenue - costs[y].totalCost;
+    html += `<div class="bar-row">
+      <div class="bar-label">Y${y}</div>
+      <div style="flex:1;">
+        <div style="display:flex;height:10px;gap:1px;margin-bottom:1px;">
+          <div class="bar-rev" style="width:${revPct}%;border-radius:2px;">${revenue[y].collectedRevenue > maxVal * 0.15 ? fmtM(revenue[y].collectedRevenue) : ''}</div>
+        </div>
+        <div style="display:flex;height:10px;gap:1px;">
+          <div class="bar-cost" style="width:${costPct}%;border-radius:2px;">${costs[y].totalCost > maxVal * 0.15 ? fmtM(costs[y].totalCost) : ''}</div>
+        </div>
+      </div>
+      <div style="width:50px;text-align:right;font-size:8px;font-weight:700;color:${net >= 0 ? 'var(--md-green)' : 'var(--red)'};">${net >= 0 ? '+' : ''}${fmtM(net)}</div>
+    </div>`;
+  }
+  $('mini-chart').innerHTML = html;
+}
+
+function renderRightPanel(y, revenue, costs, staff, enrollment, sections) {
+  const rev = revenue[y];
+  const cost = costs[y];
+  const st = staff[y];
+  const net = rev.collectedRevenue - cost.totalCost;
+  const enrol = enrollment[y]._total;
+
+  // Revenue breakdown
+  let rhtml = '';
+  rhtml += `<div class="summary-row"><span class="s-label">Gross Tuition</span><span class="s-val">${fmtSAR(rev.grossTuition)}</span></div>`;
+  if (rev.discountAmount > 0) {
+    rhtml += `<div class="summary-row deficit"><span class="s-label">Building Discount (${(rev.discountRate * 100).toFixed(0)}%)</span><span class="s-val">-${fmtSAR(rev.discountAmount)}</span></div>`;
+  }
+  rhtml += `<div class="summary-row"><span class="s-label">Net Tuition</span><span class="s-val">${fmtSAR(rev.netTuition)}</span></div>`;
+  rhtml += `<div class="summary-row"><span class="s-label">Books & Materials</span><span class="s-val">${fmtSAR(rev.books)}</span></div>`;
+  rhtml += `<div class="summary-row"><span class="s-label">Registration</span><span class="s-val">${fmtSAR(rev.registration)}</span></div>`;
+  rhtml += `<div class="summary-row"><span class="s-label">Transport</span><span class="s-val">${fmtSAR(rev.transport)}</span></div>`;
+  rhtml += `<div class="summary-row"><span class="s-label">Uniform</span><span class="s-val">${fmtSAR(rev.uniform)}</span></div>`;
+  rhtml += `<div class="summary-row"><span class="s-label">Sports & Activities</span><span class="s-val">${fmtSAR(rev.sports)}</span></div>`;
+  rhtml += `<div class="summary-row"><span class="s-label">Cafeteria / Meals</span><span class="s-val">${fmtSAR(rev.cafeteria)}</span></div>`;
+  rhtml += `<div class="summary-row grand"><span class="s-label">Collected Revenue</span><span class="s-val">SAR ${fmtM(rev.collectedRevenue)}</span></div>`;
+  $('rev-breakdown').innerHTML = rhtml;
+
+  // Cost breakdown
+  let chtml = '';
+  chtml += `<div class="summary-row"><span class="s-label">Teacher Salaries</span><span class="s-val">${fmtSAR(cost.teacherCost)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Senior / HOD Salaries</span><span class="s-val">${fmtSAR(cost.seniorCost)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Admin Salaries</span><span class="s-val">${fmtSAR(cost.adminCost)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Support Salaries</span><span class="s-val">${fmtSAR(cost.supportCost)}</span></div>`;
+  chtml += `<div class="summary-row" style="border-top:1px solid var(--border);padding-top:4px;"><span class="s-label"><b>Staff Total</b></span><span class="s-val">${fmtSAR(cost.totalStaffCost)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Utilities</span><span class="s-val">${fmtSAR(cost.utilities)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Maintenance</span><span class="s-val">${fmtSAR(cost.maintenance)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Materials</span><span class="s-val">${fmtSAR(cost.materials)}</span></div>`;
+  chtml += `<div class="summary-row"><span class="s-label">Overhead</span><span class="s-val">${fmtSAR(cost.overhead)}</span></div>`;
+  const cls = net >= 0 ? 'surplus' : 'deficit';
+  chtml += `<div class="summary-row grand"><span class="s-label">Total Costs</span><span class="s-val">SAR ${fmtM(cost.totalCost)}</span></div>`;
+  $('cost-breakdown').innerHTML = chtml;
+
+  // Staff detail
+  let shtml = '';
+  shtml += `<div class="summary-row"><span class="s-label">Teachers</span><span class="s-val">${st.teachers}</span></div>`;
+  shtml += `<div class="summary-row"><span class="s-label">Senior / HODs</span><span class="s-val">${st.seniors}</span></div>`;
+  shtml += `<div class="summary-row"><span class="s-label">Admin</span><span class="s-val">${st.admin}</span></div>`;
+  shtml += `<div class="summary-row"><span class="s-label">Support</span><span class="s-val">${st.support}</span></div>`;
+  shtml += `<div class="summary-row" style="border-top:2px solid var(--dk-green);padding-top:4px;font-weight:700;"><span class="s-label"><b>Total Staff</b></span><span class="s-val">${st.total}</span></div>`;
+  if (st.newTotal > 0) {
+    shtml += `<div class="summary-row" style="margin-top:4px;color:var(--red);"><span class="s-label"><b>New Hires This Year</b></span><span class="s-val" style="color:var(--red);">+${st.newTotal}</span></div>`;
+  }
+  $('staff-detail').innerHTML = shtml;
+
+  // Where new hiring happens
+  let hhtml = '';
+  if (y === 0) {
+    hhtml = '<div style="font-size:10px;color:var(--md-grey);text-align:center;padding:8px;">Y0 is the baseline year — no new hiring.</div>';
+  } else {
+    let anyHire = false;
+    for (const g of GRADES) {
+      const delta = st['deltaSec_' + g.id];
+      if (delta > 0) {
+        anyHire = true;
+        const ratio = TEACHER_RATIO[g.segment];
+        const newTeachers = Math.ceil(delta * ratio);
+        hhtml += `<div class="hire-item">
+          <span class="seg">${g.name} <span style="color:var(--md-grey);font-size:8px;">(+${delta} section${delta > 1 ? 's' : ''})</span></span>
+          <span class="count">+${newTeachers} teacher${newTeachers > 1 ? 's' : ''}</span>
+        </div>`;
+      }
+    }
+    if (!anyHire) {
+      hhtml = '<div style="font-size:10px;color:var(--md-grey);text-align:center;padding:8px;">No new sections needed in Y' + y + '.</div>';
+    }
+
+    // Summary by segment
+    hhtml += '<div style="margin-top:6px;border-top:1px solid #EEE;padding-top:6px;">';
+    for (const s of SEGMENTS) {
+      const nw = st['newTeachers_' + s];
+      hhtml += `<div class="hire-item"><span class="seg">${SEG_NAMES[s]}</span><span class="count ${nw === 0 ? 'zero' : ''}">${nw > 0 ? '+' + nw : '—'}</span></div>`;
+    }
+    hhtml += '</div>';
+  }
+  $('hiring-map').innerHTML = hhtml;
+
+  // Per-student economics
+  let phtml = '';
+  const revPerStudent = enrol > 0 ? rev.collectedRevenue / enrol : 0;
+  const costPerStudent = enrol > 0 ? cost.totalCost / enrol : 0;
+  const netPerStudent = revPerStudent - costPerStudent;
+  const staffPct = rev.collectedRevenue > 0 ? (cost.totalStaffCost / rev.collectedRevenue * 100) : 0;
+  phtml += `<div class="summary-row"><span class="s-label">Revenue / Student</span><span class="s-val">${fmtSAR(revPerStudent)}</span></div>`;
+  phtml += `<div class="summary-row"><span class="s-label">Cost / Student</span><span class="s-val">${fmtSAR(costPerStudent)}</span></div>`;
+  phtml += `<div class="summary-row ${netPerStudent >= 0 ? 'surplus' : 'deficit'}"><span class="s-label"><b>Net / Student</b></span><span class="s-val">${fmtSAR(netPerStudent)}</span></div>`;
+  phtml += `<div class="summary-row"><span class="s-label">Staff Cost % of Revenue</span><span class="s-val" style="color:${staffPct > 70 ? 'var(--red)' : staffPct > 55 ? 'var(--orange)' : 'var(--md-green)'};">${staffPct.toFixed(1)}%</span></div>`;
+  phtml += `<div class="summary-row"><span class="s-label">Student : Teacher Ratio</span><span class="s-val">${st.teachers > 0 ? (enrol / st.teachers).toFixed(1) : '—'} : 1</span></div>`;
+  phtml += `<div class="summary-row"><span class="s-label">Student : Staff Ratio</span><span class="s-val">${st.total > 0 ? (enrol / st.total).toFixed(1) : '—'} : 1</span></div>`;
+  $('per-student').innerHTML = phtml;
+}
+
+function updateLabels(cfg) {
+  $('lbl-target').textContent = fmt(cfg.targetTotal);
+  $('lbl-growth-yrs').textContent = cfg.growthYears;
+  $('lbl-max-cls').textContent = cfg.maxCls;
+  $('lbl-ey-cls').textContent = cfg.eyCls;
+  $('lbl-discount').textContent = (cfg.discount * 100).toFixed(0) + '%';
+  $('lbl-disc-yrs').textContent = cfg.discountYears;
+  $('lbl-transport-util').textContent = (cfg.transportUtil * 100).toFixed(0) + '%';
+  $('lbl-sports-optin').textContent = (cfg.sportsOptin * 100).toFixed(0) + '%';
+  $('lbl-teacher-sal').textContent = fmt(cfg.teacherSal);
+  $('lbl-senior-sal').textContent = fmt(cfg.seniorSal);
+  $('lbl-admin-sal').textContent = fmt(cfg.adminSal);
+  $('lbl-support-sal').textContent = fmt(cfg.supportSal);
+  $('lbl-benefits').textContent = cfg.benefits.toFixed(2) + '\u00D7';
+  $('lbl-utilities').textContent = fmt(cfg.utilities);
+  $('lbl-maintenance').textContent = fmt(cfg.maintenance);
+  $('lbl-materials').textContent = fmt(cfg.materials);
+  $('lbl-overhead').textContent = fmt(cfg.overhead);
+  $('lbl-collection').textContent = (cfg.collection * 100).toFixed(0) + '%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN RECALC
+// ═══════════════════════════════════════════════════════════
+
+function recalc() {
+  const cfg = readInputs();
+  updateLabels(cfg);
+
+  const enrollment = calcEnrollment(cfg);
+  const sections = calcSections(enrollment, cfg);
+  const staffData = calcStaff(sections, enrollment, cfg);
+  const revenue = calcRevenue(enrollment, cfg);
+  const costs = calcCosts(staffData, enrollment, cfg);
+
+  // Top KPIs (target year = last growth year or Y5)
+  const ky = Math.min(cfg.growthYears, NUM_YEARS - 1);
+  $('kpi-revenue').textContent = 'SAR ' + fmtM(revenue[ky].collectedRevenue);
+  $('kpi-costs').textContent = 'SAR ' + fmtM(costs[ky].totalCost);
+  const kNet = revenue[ky].collectedRevenue - costs[ky].totalCost;
+  $('kpi-net').textContent = (kNet >= 0 ? '+' : '') + 'SAR ' + fmtM(kNet);
+  $('kpi-net').style.color = kNet >= 0 ? 'var(--md-green)' : 'var(--red)';
+  $('kpi-students').textContent = fmt(enrollment[ky]._total);
+  $('kpi-staff').textContent = fmt(staffData[ky].total);
+  $('kpi-per-student').textContent = 'SAR ' + fmtK(enrollment[ky]._total > 0 ? revenue[ky].collectedRevenue / enrollment[ky]._total : 0);
+
+  // Update KPI labels
+  const kpiLabels = document.querySelectorAll('#top-kpis .kpi .label');
+  const yearLabel = `Y${ky}`;
+  kpiLabels.forEach(l => { l.textContent = l.textContent.replace(/Y\d+/, yearLabel); });
+
+  // Render tabs
+  renderEnrollmentTab(enrollment, sections, staffData);
+  renderRevenueTab(revenue, enrollment);
+  renderStaffingTab(staffData, sections, costs, enrollment);
+  renderPnLTab(revenue, costs);
+  renderMiniChart(revenue, costs);
+
+  // Right panel
+  renderRightPanel(selectedYear, revenue, costs, staffData, enrollment, sections);
+
+  // Chart legend
+  const lastNet = revenue[NUM_YEARS - 1].collectedRevenue - costs[NUM_YEARS - 1].totalCost;
+  $('chart-legend').textContent = `Y${NUM_YEARS - 1} Net: ${lastNet >= 0 ? '+' : ''}SAR ${fmtM(lastNet)}`;
+  $('chart-legend').style.color = lastNet >= 0 ? 'var(--md-green)' : 'var(--red)';
+}
+
+// ═══════════════════════════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════════════════════════
+
+buildTuitionTable();
+buildOtherFeesTable();
+buildYearSelector();
+
+// Bind all slider inputs
+document.querySelectorAll('input[type="range"]').forEach(sl => {
+  sl.addEventListener('input', recalc);
+});
+
+// Bind all number inputs (with debounce)
+let debounceTimer;
+function debouncedRecalc() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(recalc, 200);
+}
+document.querySelectorAll('input[type="number"]').forEach(inp => {
+  inp.addEventListener('input', debouncedRecalc);
+  inp.addEventListener('change', recalc);
+});
+
+// Initial calculation
+recalc();
+</script>
+</body>
+</html>
